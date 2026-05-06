@@ -1,0 +1,16 @@
+torch>=2.0.0
+torchvision
+torchaudio
+pytorch-lightning>=2.0.0
+transformers>=4.30.0
+biopython
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+wandb
+plotly
+pyyaml
+scipy
+h5py
