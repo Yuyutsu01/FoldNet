@@ -1,8 +1,47 @@
+# FoldNet: Protein Structure & Secondary Structure Prediction
 
-🧬 Problem Statement
+FoldNet is a deep learning project for predicting protein secondary structure and contacts.
 
-Proteins are sequences of amino acids that fold into complex 3D structures.
-Understanding these structures is essential because they directly determine protein function.
+## Data Pipeline
 
-However, experimentally determining structures is time-consuming and expensive.
-This project focuses on predicting structural properties computationally from sequences.
+The project uses the CullPDB dataset. The processing pipeline consists of several steps:
+
+### 1. Data Preprocessing
+- **Secondary Structure Labels**: `python -m foldnet.data.preprocess_ss`
+  - Filters sequences and generates clean secondary structure labels.
+- **PDB ID Extraction**: `python -m foldnet.data.extract_cull_pdbids`
+  - Recovers PDB IDs and chain IDs for CullPDB entries.
+  - Note: Since raw CullPDB files often lack PDB IDs, this script uses the RCSB Sequence Search API to match sequences back to their original PDB entries.
+
+### 2. Feature Extraction
+- `python -m foldnet.data.extract_features`
+  - Generates features for model training.
+
+## Installation & Setup
+
+1. Create a virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+### Extracting PDB IDs
+To recover PDB IDs from the processed labels:
+```bash
+python -m foldnet.data.extract_cull_pdbids \
+  --csv data/processed/cullpdb_ss_labels.csv \
+  --out data/processed/cullpdb_pdbids.csv
+```
+
+## Project Structure
+- `foldnet/`: Core package
+  - `data/`: Data loading and preprocessing scripts
+  - `models/`: Model architecture definitions
+- `configs/`: Training configurations (YAML)
+- `data/`: Raw and processed data files (ignored by git)
