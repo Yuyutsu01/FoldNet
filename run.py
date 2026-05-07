@@ -3,6 +3,8 @@ FoldNet Main Entry Point
 =======================
 Usage:
 python run.py --config configs/baseline_cnn.yaml --fold 0
+tensorboard --logdir results/logs
+
 """
 
 import os
