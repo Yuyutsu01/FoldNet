@@ -13,12 +13,14 @@ __pycache__/
 
 # ── Data files (too large for git) ────────────────────────────────────────────
 **/data/raw/
-**/data/processed/
+**/data/processed/**/
+!**/data/processed/*.csv
+!**/data/processed/*.json
 **/*.pdb
-*.npy
-*.npz
-*.h5
-*.gz
+**/*.npy
+**/*.npz
+**/*.h5
+**/*.gz
 
 # ── Model checkpoints & results ───────────────────────────────────────────────
 results/
