@@ -1,0 +1,95 @@
+"""
+FoldNet Main Entry Point
+=======================
+Usage:
+python run.py --config configs/baseline_cnn.yaml --fold 0
+"""
+
+import os
+import yaml
+import argparse
+import logging
+import torch
+
+from foldnet.data.dataset import get_dataloaders
+from foldnet.models.train import train_foldnet
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+def main():
+    parser = argparse.ArgumentParser(description="Train FoldNet model")
+    parser.add_argument("--config", type=str, default="configs/baseline_cnn.yaml", help="Path to YAML config file")
+    parser.add_argument("--fold", type=int, default=0, help="Cross-validation fold to train (0-4)")
+    args = parser.parse_args()
+
+    setup_logging()
+    logger = logging.getLogger(__name__)
+
+    # 1. Load Configuration
+    if not os.path.exists(args.config):
+        logger.error(f"Config file not found: {args.config}")
+        return
+
+    with open(args.config, 'r') as f:
+        config_full = yaml.safe_load(f)
+    
+    # Flatten config for easier passing
+    config = {}
+    config.update(config_full.get('model', {}))
+    config.update(config_full.get('training', {}))
+    config.update(config_full.get('experiment', {}))
+    config.update(config_full.get('data', {}))
+    
+    # Ensure mandatory data paths are set if not in YAML
+    # We use the defaults from our verified test_dataset setup
+    if 'ss_csv' not in config:
+        config['ss_csv'] = 'foldnet/data/processed/cb513_ss_labels.csv'
+    if 'splits_json' not in config:
+        config['splits_json'] = 'foldnet/data/processed/cb513_splits_5fold/splits.json'
+    if 'esm_dir' not in config:
+        # Default to basic features we just generated
+        config['esm_dir'] = 'foldnet/data/processed/basic_features'
+    
+    # Ensure numeric types are correct (prevent string-to-float errors)
+    for key in ['lr', 'lambda_contact', 'val_split']:
+        if key in config and config[key] is not None:
+            config[key] = float(config[key])
+    for key in ['epochs', 'batch_size', 'accumulate_grad_batches', 'feature_dim', 'hidden_dim', 'num_classes']:
+        if key in config and config[key] is not None:
+            config[key] = int(config[key])
+    
+    # Override feature_dim if using basic features
+    if 'basic_features' in config['esm_dir']:
+        config['feature_dim'] = 25
+        logger.info("Using basic features (dim=25)")
+
+    logger.info(f"Starting Experiment: {config.get('name', 'unnamed')}")
+    logger.info(f"Config: {args.config} | Fold: {args.fold}")
+
+    # 2. Get DataLoaders
+    try:
+        train_loader, val_loader = get_dataloaders(fold=args.fold, config=config)
+    except Exception as e:
+        logger.error(f"Failed to load data: {e}")
+        return
+
+    # 3. Start Training
+    try:
+        trainer, model = train_foldnet(
+            train_loader, 
+            val_loader, 
+            config,
+            checkpoint_dir=config_full.get('paths', {}).get('checkpoint_dir', 'results/checkpoints'),
+            logs_dir=config_full.get('paths', {}).get('logs_dir', 'results/logs')
+        )
+        logger.info("Training process completed successfully.")
+    except Exception:
+        logger.exception("Training failed with the following error:")
+
+if __name__ == "__main__":
+    main()

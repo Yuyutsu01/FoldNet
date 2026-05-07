@@ -36,9 +36,9 @@ class FoldNet(pl.LightningModule):
         # 3. Training Parameters
         self.lambda_contact = lambda_contact
         self.lr = lr
-        self.ss_criterion = nn.CrossEntropyLoss()
-        # Using binary cross entropy with weight to handle sparsity of contact maps
-        self.contact_criterion = nn.BCELoss()
+        self.ss_criterion = nn.CrossEntropyLoss(ignore_index=-1)
+        # BCEWithLogitsLoss is autocast-safe (required for FP16 mixed precision on GPU)
+        self.contact_criterion = nn.BCEWithLogitsLoss()
 
     def forward(self, features, mask=None):
         # features: (batch, L, feature_dim)
@@ -65,7 +65,7 @@ class FoldNet(pl.LightningModule):
         # ss_logits: (batch, L, 3) -> (batch*L, 3)
         # ss_labels: (batch, L) -> (batch*L)
         L = features.size(1)
-        ss_loss = self.ss_criterion(ss_logits.view(-1, 3), ss_labels.view(-1))
+        ss_loss = self.ss_criterion(ss_logits.view(-1, self.hparams.num_classes), ss_labels.view(-1))
         
         # Contact loss
         contact_loss = self.contact_criterion(contact_probs, contact_map.float())
@@ -86,11 +86,13 @@ class FoldNet(pl.LightningModule):
         
         ss_logits, contact_probs = self(features, mask=mask)
         
-        ss_loss = self.ss_criterion(ss_logits.view(-1, 3), ss_labels.view(-1))
+        ss_loss = self.ss_criterion(ss_logits.view(-1, self.hparams.num_classes), ss_labels.view(-1))
         contact_loss = self.contact_criterion(contact_probs, contact_map.float())
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
         self.log('val_loss', total_loss, prog_bar=True)
+        self.log('val_ss_loss', ss_loss)
+        self.log('val_contact_loss', contact_loss)
         return total_loss
 
     def configure_optimizers(self):

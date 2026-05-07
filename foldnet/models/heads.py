@@ -63,8 +63,7 @@ class ContactMapHead(nn.Module):
         for block in self.res_blocks:
             out = block(out)
         
-        # (batch, 1, L, L)
-        logits = self.output_conv(out)
-        probs = torch.sigmoid(logits).squeeze(1)
+        # (batch, 1, L, L) → (batch, L, L)
+        logits = self.output_conv(out).squeeze(1)
         
-        return probs  # (batch, L, L)
+        return logits  # raw logits — sigmoid applied by BCEWithLogitsLoss

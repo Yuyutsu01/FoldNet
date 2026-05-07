@@ -4,6 +4,9 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, Learning
 from .foldnet import FoldNet
 import torch.optim as nn_optim
 
+# Enable TF32 TensorCore acceleration on RTX 40xx GPUs
+torch.set_float32_matmul_precision('medium')
+
 def train_foldnet(
     train_loader, 
     val_loader, 
@@ -47,8 +50,8 @@ def train_foldnet(
     accelerator = 'gpu' if torch.cuda.is_available() else 'cpu'
     devices = 1
     
-    # Precision: Use 16-bit mixed precision if on GPU to save memory (important for 6GB VRAM)
-    precision = '16-mixed' if accelerator == 'gpu' else 32
+    # Precision: Use 16-bit mixed precision if on GPU to save memory
+    precision = '16-mixed' if accelerator == 'gpu' else '32-true'
 
     trainer = pl.Trainer(
         max_epochs=config.get('epochs', 100),
