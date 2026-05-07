@@ -113,7 +113,7 @@ def parse_npy_file(npy_path: str, dataset_name: str) -> pd.DataFrame:
     print(f"[preprocess_ss] {dataset_name}: {len(df)} kept | "
           f"{skipped_short} too short | {skipped_nonstandard} non-standard AA")
     if len(df) > 0:
-        print(f"[preprocess_ss] Length  ->  min={df.length.min()}  "
+        print(f"[preprocess_ss] Length  →  min={df.length.min()}  "
               f"max={df.length.max()}  mean={df.length.mean():.1f}")
     return df
 
@@ -127,14 +127,14 @@ def main(cb513_path: str, cullpdb_path: str | None, out_dir: str):
     df_cb513 = parse_npy_file(cb513_path, 'cb513')
     cb_out = os.path.join(out_dir, 'cb513_ss_labels.csv')
     df_cb513.to_csv(cb_out, index=False)
-    print(f"[preprocess_ss] Saved -> {cb_out}\n")
+    print(f"[preprocess_ss] Saved → {cb_out}\n")
 
     # ── CullPDB (training data) ── optional
     if cullpdb_path and os.path.exists(cullpdb_path):
         df_cull = parse_npy_file(cullpdb_path, 'cull')
         cull_out = os.path.join(out_dir, 'cullpdb_ss_labels.csv')
         df_cull.to_csv(cull_out, index=False)
-        print(f"[preprocess_ss] Saved -> {cull_out}\n")
+        print(f"[preprocess_ss] Saved → {cull_out}\n")
 
     print("[preprocess_ss] Done.")
 
@@ -143,6 +143,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parse CB513 / CullPDB .npy files → CSV')
     parser.add_argument('--cb513',   required=True, help='Path to cb513+profile_split1.npy')
     parser.add_argument('--cullpdb', default=None,  help='Path to cullpdb+profile_5926_filtered.npy')
-    parser.add_argument('--out_dir', default='foldnet/data/processed', help='Output directory')
+    parser.add_argument('--out_dir', default='data/processed', help='Output directory')
     args = parser.parse_args()
     main(args.cb513, args.cullpdb, args.out_dir)

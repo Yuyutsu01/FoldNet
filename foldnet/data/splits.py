@@ -62,8 +62,8 @@ def create_splits(csv_path: str, out_dir: str, n_folds: int = 5, seed: int = 42)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--csv',      default='foldnet/data/processed/cb513_ss_labels.csv')
-    parser.add_argument('--out_dir',  default='foldnet/data/processed/cb513_splits_5fold')
+    parser.add_argument('--csv',      default='data/processed/cb513_ss_labels.csv')
+    parser.add_argument('--out_dir',  default='data/processed/cb513_splits_5fold')
     parser.add_argument('--n_folds',  type=int, default=5)
     parser.add_argument('--seed',     type=int, default=42)
     args = parser.parse_args()

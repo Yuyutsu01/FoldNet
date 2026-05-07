@@ -118,7 +118,7 @@ def save_basic_features(csv_path: str, out_dir: str):
     """
     os.makedirs(out_dir, exist_ok=True)
     df = pd.read_csv(csv_path)
-    print(f"[extract_features] Processing {len(df)} proteins -> {out_dir}")
+    print(f"[extract_features] Processing {len(df)} proteins → {out_dir}")
 
     for i, row in df.iterrows():
         pid = row['protein_id']
@@ -126,14 +126,14 @@ def save_basic_features(csv_path: str, out_dir: str):
         feat = combine_features(seq, pid, esm_dir=None, use_esm=False)  # (L, 25)
         np.save(os.path.join(out_dir, f"{pid}.npy"), feat)
         if i % 100 == 0:
-            print(f"  [{i+1}/{len(df)}] {pid} -> shape {feat.shape}")
+            print(f"  [{i+1}/{len(df)}] {pid} → shape {feat.shape}")
 
-    print(f"[extract_features] Done. {len(df)} files saved.")
+    print(f"[extract_features] ✓ Done. {len(df)} files saved.")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--csv',     default='foldnet/data/processed/cb513_ss_labels.csv')
-    parser.add_argument('--out_dir', default='foldnet/data/processed/basic_features')
+    parser.add_argument('--csv',     default='data/processed/cb513_ss_labels.csv')
+    parser.add_argument('--out_dir', default='data/processed/basic_features')
     args = parser.parse_args()
     save_basic_features(args.csv, args.out_dir)

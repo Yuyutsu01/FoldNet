@@ -73,8 +73,6 @@ class FoldNet(pl.LightningModule):
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
         self.log('train_loss', total_loss, on_step=True, on_epoch=True, prog_bar=True)
-        self.log('train_ss_loss', ss_loss)
-        self.log('train_contact_loss', contact_loss)
         
         return total_loss
 
@@ -91,18 +89,36 @@ class FoldNet(pl.LightningModule):
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
         self.log('val_loss', total_loss, prog_bar=True)
-        self.log('val_ss_loss', ss_loss)
-        self.log('val_contact_loss', contact_loss)
         return total_loss
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-        # Using Cosine Annealing with Warmup for better convergence
-        scheduler = {
-            'scheduler': torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.trainer.max_epochs),
-            'name': 'lr_scheduler'
+        
+        # 5-epoch Linear Warmup followed by Cosine Annealing
+        warmup_epochs = 5
+        max_epochs = self.trainer.max_epochs
+        
+        scheduler1 = torch.optim.lr_scheduler.LinearLR(
+            optimizer, start_factor=0.1, end_factor=1.0, total_iters=warmup_epochs
+        )
+        scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=max_epochs - warmup_epochs
+        )
+        
+        combined_scheduler = torch.optim.lr_scheduler.SequentialLR(
+            optimizer, 
+            schedulers=[scheduler1, scheduler2], 
+            milestones=[warmup_epochs]
+        )
+        
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": combined_scheduler,
+                "interval": "epoch",
+                "name": "learning_rate"
+            }
         }
-        return [optimizer], [scheduler]
 
     def freeze_encoder(self):
         for param in self.encoder.parameters():

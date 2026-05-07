@@ -59,7 +59,7 @@ def main():
     parser = argparse.ArgumentParser(description="Download raw data for FoldNet.")
     parser.add_argument("--dataset", choices=["cb513", "cullpdb", "all"], help="Standard dataset to download")
     parser.add_argument("--pdb", type=str, help="Specific PDB ID to download (e.g., 1A2Y)")
-    parser.add_argument("--out_dir", type=str, default="foldnet/data/raw", help="Output directory")
+    parser.add_argument("--out_dir", type=str, default="data/raw", help="Output directory")
     
     args = parser.parse_args()
 

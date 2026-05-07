@@ -99,7 +99,7 @@ def main(csv_path: str, out_path: str, limit: int = 0, delay: float = 0.3):
             })
             found += 1
             if found % 50 == 1 or i < 10:
-                print(f"  [{i+1}/{total}] {pid} -> {hit['pdb_id']}.{hit['chain_id']}")
+                print(f"  [{i+1}/{total}] {pid} → {hit['pdb_id']}.{hit['chain_id']}")
         else:
             records.append({
                 "protein_id": pid,
@@ -111,7 +111,7 @@ def main(csv_path: str, out_path: str, limit: int = 0, delay: float = 0.3):
             })
             missed += 1
             if missed <= 5 or i < 10:
-                print(f"  [{i+1}/{total}] {pid} -> no match")
+                print(f"  [{i+1}/{total}] {pid} → no match")
 
         time.sleep(delay)
 
@@ -123,16 +123,16 @@ def main(csv_path: str, out_path: str, limit: int = 0, delay: float = 0.3):
     os.makedirs(os.path.dirname(out_path) if os.path.dirname(out_path) else ".", exist_ok=True)
     result.to_csv(out_path, index=False)
 
-    print(f"\n[pdbids] Done - {found}/{total} matched ({found/total*100:.0f}%)")
-    print(f"[pdbids] Saved -> {out_path}")
+    print(f"\n[pdbids] ✓ Done — {found}/{total} matched ({found/total*100:.0f}%)")
+    print(f"[pdbids] Saved → {out_path}")
     print(f"\n[pdbids] Sample:")
     print(result[["protein_id", "pdb_id", "chain_id"]].head(10).to_string())
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--csv",   default="foldnet/data/processed/cullpdb_ss_labels.csv")
-    parser.add_argument("--out",   default="foldnet/data/processed/cullpdb_pdbids.csv")
+    parser.add_argument("--csv",   default="data/processed/cullpdb_ss_labels.csv")
+    parser.add_argument("--out",   default="data/processed/cullpdb_pdbids.csv")
     parser.add_argument("--limit", type=int, default=0,
                         help="Process only first N proteins (0=all). Use 10 to test first.")
     parser.add_argument("--delay", type=float, default=0.3,

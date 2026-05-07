@@ -107,7 +107,7 @@ def get_dataloaders(fold: int, config: dict):
         shuffle     = True,
         collate_fn  = collate_fn,
         num_workers = 0,      # 0 = required on Windows
-        pin_memory  = True,
+        pin_memory  = False,
     )
     val_loader = DataLoader(
         val_ds,
@@ -115,8 +115,8 @@ def get_dataloaders(fold: int, config: dict):
         shuffle     = False,
         collate_fn  = collate_fn,
         num_workers = 0,
-        pin_memory  = True,
+        pin_memory  = False,
     )
 
-    print(f"[dataset] Fold {fold} -> train={len(train_ds)}  val={len(val_ds)}")
+    print(f"[dataset] Fold {fold} → train={len(train_ds)}  val={len(val_ds)}")
     return train_loader, val_loader
