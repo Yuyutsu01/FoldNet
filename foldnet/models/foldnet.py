@@ -15,6 +15,7 @@ class FoldNet(pl.LightningModule):
                  freeze_encoder=False):
         super().__init__()
         self.save_hyperparameters()
+        self.validation_step_outputs = []
         
         # 1. Initialize Encoder
         if encoder_type == 'cnn':
@@ -89,7 +90,81 @@ class FoldNet(pl.LightningModule):
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
         self.log('val_loss', total_loss, prog_bar=True)
+        
+        # Save predictions for epoch-end metrics
+        ss_preds = torch.argmax(ss_logits, dim=-1)
+        c_probs = torch.sigmoid(contact_probs)
+        
+        batch_ss_p, batch_ss_t, batch_c_p, batch_c_t, batch_seq_lens = [], [], [], [], []
+        
+        for i in range(features.size(0)):
+            valid_mask = ss_labels[i] != -1
+            seq_len = valid_mask.sum().item()
+            if seq_len == 0: continue
+                
+            batch_seq_lens.append(seq_len)
+            batch_ss_p.append(ss_preds[i, valid_mask].cpu().numpy())
+            batch_ss_t.append(ss_labels[i, valid_mask].cpu().numpy())
+            batch_c_p.append(c_probs[i, :seq_len, :seq_len].cpu().numpy())
+            batch_c_t.append(contact_map[i, :seq_len, :seq_len].cpu().numpy())
+            
+        if not hasattr(self, 'validation_step_outputs'):
+            self.validation_step_outputs = []
+            
+        self.validation_step_outputs.append({
+            'ss_p': batch_ss_p, 'ss_t': batch_ss_t, 
+            'c_p': batch_c_p, 'c_t': batch_c_t, 
+            'seq_lens': batch_seq_lens
+        })
+        
         return total_loss
+        
+    def on_validation_epoch_end(self):
+        if not hasattr(self, 'validation_step_outputs') or len(self.validation_step_outputs) == 0:
+            return
+            
+        ss_p_list, ss_t_list, c_p_list, c_t_list, seq_lens = [], [], [], [], []
+        
+        for out in self.validation_step_outputs:
+            ss_p_list.extend(out['ss_p'])
+            ss_t_list.extend(out['ss_t'])
+            c_p_list.extend(out['c_p'])
+            c_t_list.extend(out['c_t'])
+            seq_lens.extend(out['seq_lens'])
+            
+        from foldnet.evaluation.metrics_ss import evaluate_metrics
+        metrics = evaluate_metrics(ss_p_list, ss_t_list, c_p_list, c_t_list, seq_lens)
+        
+        for k, v in metrics.items():
+            if isinstance(v, (int, float)):
+                self.log(f"val_{k}", v, prog_bar=(k == 'Q3'))
+                
+        # Optional: Log images to wandb
+        try:
+            import wandb
+            from pytorch_lightning.loggers import WandbLogger
+            if isinstance(self.logger, WandbLogger):
+                from foldnet.evaluation.visualisation import plot_secondary_structure, plot_contact_map
+                import os
+                import tempfile
+                
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    ss_path = os.path.join(tmpdir, 'val_ss.png')
+                    cm_path = os.path.join(tmpdir, 'val_cm.png')
+                    
+                    # Just plot the first protein in the validation set
+                    plot_secondary_structure(ss_p_list[0], ss_t_list[0], seq_lens[0], ss_path)
+                    plot_contact_map(c_p_list[0], c_t_list[0], cm_path)
+                    
+                    self.logger.experiment.log({
+                        "val_ss_plot": wandb.Image(ss_path),
+                        "val_contact_map": wandb.Image(cm_path),
+                        "epoch": self.current_epoch
+                    })
+        except Exception as e:
+            pass # Fail silently if wandb/matplotlib not available or not configured
+            
+        self.validation_step_outputs.clear()
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)

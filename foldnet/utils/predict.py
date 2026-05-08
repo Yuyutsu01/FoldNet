@@ -13,7 +13,7 @@ def load_model(checkpoint_path: str, device: str = 'cpu') -> FoldNet:
     model.eval()
     return model
 
-def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str = 'cpu') -> Tuple[List[np.ndarray], List[np.ndarray], List[np.ndarray], List[np.ndarray], List[int]]:
+def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str = None):
     """
     Runs inference and extracts predictions and ground truths for evaluation.
     
@@ -23,19 +23,25 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
         contact_probs_list: List of predicted contact probability matrices.
         contact_true_list: List of true contact matrices.
         seq_lens: List of actual sequence lengths (excluding padding).
+        protein_ids_list: List of protein IDs.
     """
     ss_pred_list = []
     ss_true_list = []
     contact_probs_list = []
     contact_true_list = []
     seq_lens = []
+    protein_ids_list = []
     
+    if device is None:
+        device = next(model.parameters()).device
+        
     with torch.no_grad():
         for batch in dataloader:
             features = batch['features'].to(device)
             ss_labels = batch['ss_labels'].to(device)
             contact_map = batch['contact_map'].to(device)
             mask = batch.get('mask', None)
+            batch_pids = batch.get('protein_ids', [f"protein_{i}" for i in range(features.size(0))])
             
             if mask is not None:
                 mask = mask.to(device)
@@ -61,6 +67,7 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
                     continue
                     
                 seq_lens.append(seq_len)
+                protein_ids_list.append(batch_pids[i])
                 
                 # Extract valid portions
                 ss_p = ss_preds[i, valid_mask].cpu().numpy()
@@ -75,4 +82,4 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
                 contact_probs_list.append(c_p)
                 contact_true_list.append(c_t)
                 
-    return ss_pred_list, ss_true_list, contact_probs_list, contact_true_list, seq_lens
+    return ss_pred_list, ss_true_list, contact_probs_list, contact_true_list, seq_lens, protein_ids_list

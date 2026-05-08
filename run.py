@@ -15,9 +15,10 @@ import torch
 
 from foldnet.data.dataset import get_dataloaders
 from foldnet.models.train import train_foldnet
+from foldnet.models.foldnet import FoldNet
 from foldnet.utils.predict import predict
-from foldnet.utils.metrics import evaluate_metrics
-from foldnet.utils.visualise import create_visualisations
+from foldnet.evaluation.metrics_ss import evaluate_metrics
+from foldnet.evaluation.visualisation import create_visualisations
 from scripts.export_for_3d import export_3d_json
 
 def setup_logging():
@@ -32,6 +33,8 @@ def main():
     parser.add_argument("--config", type=str, default="configs/baseline_cnn.yaml", help="Path to YAML config file")
     parser.add_argument("--fold", type=int, default=0, help="Cross-validation fold to train (0-4)")
     parser.add_argument("--visualise", action="store_true", help="Run static and 3D visualisations after training/evaluation")
+    parser.add_argument("--evaluate_only", action="store_true", help="Skip training and only run evaluation/visualisation")
+    parser.add_argument("--checkpoint", type=str, default="", help="Path to checkpoint (required for evaluate_only)")
     args = parser.parse_args()
 
     setup_logging()
@@ -85,16 +88,24 @@ def main():
         logger.error(f"Failed to load data: {e}")
         return
 
-    # 3. Start Training
+    # 3. Model Loading / Training
     try:
-        trainer, model = train_foldnet(
-            train_loader, 
-            val_loader, 
-            config,
-            checkpoint_dir=config_full.get('paths', {}).get('checkpoint_dir', 'results/checkpoints'),
-            logs_dir=config_full.get('paths', {}).get('logs_dir', 'results/logs')
-        )
-        logger.info("Training process completed successfully.")
+        if args.evaluate_only:
+            if not args.checkpoint or not os.path.exists(args.checkpoint):
+                logger.error(f"Must provide a valid --checkpoint path for evaluate_only. Got: {args.checkpoint}")
+                return
+            logger.info(f"Loading checkpoint {args.checkpoint} for evaluation...")
+            model = FoldNet.load_from_checkpoint(args.checkpoint)
+            model.eval()
+        else:
+            trainer, model = train_foldnet(
+                train_loader, 
+                val_loader, 
+                config,
+                checkpoint_dir=config_full.get('paths', {}).get('checkpoint_dir', 'results/checkpoints'),
+                logs_dir=config_full.get('paths', {}).get('logs_dir', 'results/logs')
+            )
+            logger.info("Training process completed successfully.")
         
         # 4. Visualisation
         if args.visualise:
@@ -102,7 +113,7 @@ def main():
             model.eval()
             
             # Run prediction on validation set
-            ss_p, ss_t, c_p, c_t, seq_lens = predict(model, val_loader)
+            ss_p, ss_t, c_p, c_t, seq_lens, prot_ids = predict(model, val_loader)
             metrics = evaluate_metrics(ss_p, ss_t, c_p, c_t, seq_lens)
             logger.info(f"Evaluation Metrics: Q3={metrics.get('Q3', 0):.2f}%, MCC={metrics.get('MCC_Macro', 0):.4f}")
             
@@ -112,7 +123,7 @@ def main():
             # Visualise the first 3 proteins in the validation set
             num_to_vis = min(3, len(seq_lens))
             for i in range(num_to_vis):
-                prot_id = f"test_protein_{i+1}"
+                prot_id = prot_ids[i]
                 logger.info(f"Generating visualisations for {prot_id}")
                 create_visualisations(ss_p[i], ss_t[i], c_p[i], c_t[i], seq_lens[i], prot_id, out_dir=out_dir)
                 

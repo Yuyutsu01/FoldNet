@@ -47,11 +47,12 @@ def train_foldnet(
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
     # 3. Trainer setup
-    # Initialize wandb logger
+    # Initialize wandb logger (offline by default to avoid login prompts)
     wandb_logger = WandbLogger(
         project='FoldNet', 
         name=config.get('name', f"foldnet-{config.get('encoder_type', 'cnn')}"),
-        save_dir=logs_dir
+        save_dir=logs_dir,
+        offline=True
     )
     
     # Note: Using 'gpu' if available, otherwise 'cpu'

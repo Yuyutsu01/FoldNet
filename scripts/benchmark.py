@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import argparse
 import yaml
 import pandas as pd
@@ -6,7 +8,7 @@ from tabulate import tabulate
 
 from foldnet.data.dataset import get_dataloaders
 from foldnet.utils.predict import load_model, predict
-from foldnet.utils.metrics import evaluate_metrics
+from foldnet.evaluation.metrics_ss import evaluate_metrics
 
 def main():
     parser = argparse.ArgumentParser(description="Benchmark FoldNet Architectures")
@@ -54,7 +56,7 @@ def main():
         print(f"\nBenchmarking {name} from {ckpt_path}...")
         model = load_model(ckpt_path)
         
-        ss_p, ss_t, c_p, c_t, seq_lens = predict(model, val_loader)
+        ss_p, ss_t, c_p, c_t, seq_lens, prot_ids = predict(model, val_loader)
         metrics = evaluate_metrics(ss_p, ss_t, c_p, c_t, seq_lens)
         
         results.append({

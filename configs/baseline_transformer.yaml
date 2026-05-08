@@ -1,10 +1,10 @@
-# Baseline CNN Experiment — FoldNet
-# Run: python run.py --config configs/baseline_cnn.yaml
+# Baseline Transformer Experiment — FoldNet
+# Run: python run.py --config configs/baseline_transformer.yaml
 
 experiment:
-  name: baseline_cnn
-  description: "CNN encoder baseline — 5 residual blocks, hidden_dim=512"
-  encoder_type: cnn
+  name: baseline_transformer
+  description: "Transformer encoder baseline — 4 layers, 8 heads, hidden_dim=512"
+  encoder_type: transformer
 
 model:
   feature_dim: 1280          # ESM2 embedding size — do NOT change
@@ -14,15 +14,15 @@ model:
   freeze_encoder: false
 
 training:
-  lr: 1e-3
+  lr: 5e-4                   # Slightly lower LR for Transformer stability
   epochs: 100
-  batch_size: 4              # safe for 6GB GPU at max_len=512
-  accumulate_grad_batches: 4 # effective batch size = 16
+  batch_size: 2              # Transformers use more memory
+  accumulate_grad_batches: 8 # effective batch size = 16
   val_split: 0.1
   num_workers: 0             # 0 = safe on Windows
 
 data:
-  max_len: 512               # truncate/pad all sequences to this length
+  max_len: 512
   esm_dir: foldnet/data/processed/esm2_embeddings
   contact_dir: data/processed/pdb_contact_maps
 

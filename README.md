@@ -1,104 +1,102 @@
-# FoldNet: Protein Structure & Secondary Structure Prediction
+# 🧬 FoldNet: Protein Structure & Contact Prediction
 
-FoldNet is a deep learning project for predicting protein secondary structure and contacts from sequence data using the CullPDB dataset.
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Lightning](https://img.shields.io/badge/-Lightning-792EE5?style=for-the-badge&logo=pytorchlightning&logoColor=white)](https://www.pytorchlightning.ai/)
+[![W&B](https://img.shields.io/badge/Weights_&_Biases-FFBE00?style=for-the-badge&logo=WeightsAndBiases&logoColor=white)](https://wandb.ai/)
 
-## Data Pipeline
-
-The project uses the CullPDB dataset. The full processing pipeline consists of the following steps:
-
-### 1. Extract PDB IDs
-```bash
-python -m foldnet.data.extract_cull_pdbids \
-  --csv foldnet/data/processed/cullpdb_ss_labels.csv \
-  --out foldnet/data/processed/cullpdb_pdbids.csv
-```
-- Recovers PDB IDs and chain IDs for CullPDB entries.
-- Uses the RCSB Sequence Search API to match sequences back to their original PDB entries (since raw CullPDB files often lack PDB IDs).
-- Output: `foldnet/data/processed/cullpdb_pdbids.csv`
-
-### 2. Preprocess Secondary Structure Labels
-```bash
-python -m foldnet.data.preprocess_ss
-```
-- Filters sequences and generates clean secondary structure labels.
-
-### 3. Preprocess Contact Maps
-```bash
-python -m foldnet.data.preprocess_contacts
-```
-- Downloads PDB structures for each protein in `cullpdb_pdbids.csv`.
-- Computes residue-level contact maps from 3D coordinates.
-- Output: `foldnet/data/processed/pdb_contact_maps/` — one `.npy` file per protein chain.
-
-### 4. Extract Features
-```bash
-python -m foldnet.data.extract_features
-```
-- Generates features for model training from the processed data.
-
-### 5. Dataset Splits
-- `foldnet/data/splits.py` — Handles train/val/test splits.
-- `foldnet/data/dataset.py` — PyTorch `Dataset` class for loading processed data.
+**FoldNet** is a state-of-the-art multi-task deep learning framework designed to predict **Secondary Structure** and **Residue-Level Contact Maps** directly from protein sequences. By leveraging pre-computed **ESM-2 Embeddings**, FoldNet achieves high accuracy while comparing multiple architectural backbones.
 
 ---
 
-## Installation & Setup
+## ✨ Key Features
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Yuyutsu01/FoldNet.git
-   cd FoldNet
-   ```
+*   🚀 **Multi-Task Learning:** Simultaneous prediction of 3-class secondary structure (Helix, Sheet, Coil) and binary contact maps.
+*   🧠 **Multiple Encoders:** Comparative support for **1D CNN (Residual)**, **BiLSTM**, and **Transformer** architectures.
+*   📊 **ESM-2 Integration:** Uses high-dimensional (1280-dim) protein language model embeddings for superior feature representation.
+*   📈 **Rich Visualisation:** Automatic generation of colored secondary structure bar plots and contact map heatmaps.
+*   🧪 **Experiment Tracking:** Full integration with **Weights & Biases** for live monitoring of Q3, MCC, and Precision@L.
+*   🛠️ **Robust Pipeline:** End-to-end support from data preprocessing to benchmarking and visualization.
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv .venv
-   # Windows:
-   .venv\Scripts\activate
-   # Linux/macOS:
-   source .venv/bin/activate
-   ```
+---
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Project Structure
+## 🏗️ Project Architecture
 
 ```
 FoldNet/
-├── foldnet/                  # Core Python package
-│   ├── data/
-│   │   ├── download.py           # Data download utilities
-│   │   ├── extract_cull_pdbids.py# PDB ID recovery via RCSB API
-│   │   ├── preprocess_ss.py      # Secondary structure label preprocessing
-│   │   ├── preprocess_contacts.py# Contact map generation from PDB structures
-│   │   ├── extract_features.py   # Feature extraction for training
-│   │   ├── splits.py             # Train/val/test splitting
-│   │   ├── dataset.py            # PyTorch Dataset class
-│   │   └── utils.py              # Shared utilities
-│   ├── models/                   # Model architecture definitions
-│   └── utils/                    # Shared utilities (metrics, etc.)
-├── configs/                  # Training configurations (YAML)
-└── README.md
+├── foldnet/
+│   ├── data/                 # Data Pipeline (Shubham)
+│   │   ├── dataset.py        # PyTorch Dataset & Collate logic
+│   │   ├── preprocess_*.py   # Feature & Label extraction scripts
+│   ├── models/               # Model Architectures (Shivam)
+│   │   ├── encoders.py       # CNN, BiLSTM, Transformer implementations
+│   │   ├── heads.py          # SS & Contact prediction heads
+│   │   └── foldnet.py        # Multi-task LightningModule
+│   ├── evaluation/           # Metrics & Plotting (Tanishka & Vaibhav)
+│   │   ├── metrics_ss.py     # Q3, MCC, Confusion Matrix
+│   │   ├── metrics_contacts.py# Precision@L, Long-range precision
+│   │   └── visualisation.py  # Static PNG generation
+├── configs/                  # Experiment Configurations (YAML)
+├── results/                  # Checkpoints, Logs, and Visualisations
+├── scripts/                  # Master Pipeline & Benchmarking
+└── tests/                    # Unit Tests (data & model verification)
 ```
 
 ---
 
-## Branch Structure
+## 🚀 Getting Started
 
-| Branch | Owner | Purpose |
-|--------|-------|---------|
-| `main` | — | Stable releases |
-| `master` | — | Main development branch |
-| `shubham` | Shubham | Data pipeline (PDB ID extraction, contact maps) |
+### 1. Installation
+```powershell
+git clone https://github.com/Yuyutsu01/FoldNet.git
+cd FoldNet
+pip install -r requirements.txt
+```
+
+### 2. Preprocessing
+Ensure your ESM-2 embeddings and contact maps are in `data/processed/`.
+```powershell
+python foldnet/data/preprocess_contacts.py
+```
+
+### 3. Training
+Run an experiment using a YAML config:
+```powershell
+python run.py --config configs/baseline_cnn.yaml
+```
+
+### 4. Benchmarking & Evaluation
+Compare all models and generate a report:
+```powershell
+python scripts/benchmark.py --cnn results/checkpoints/cnn_best.ckpt
+```
 
 ---
 
-## Contributors
+## 📊 Visualisation Examples
 
-- **Yuyutsu01** — Project lead
-- **Shubham** — Data pipeline: PDB ID extraction, contact map preprocessing
-- **Tanishka** — Evaluation & Visualization
-- **Shivam** — Machine Learning Models (Encoders, Heads, Loss)
+FoldNet generates detailed visual reports for every protein in the validation set:
+
+*   **Secondary Structure:** Predicted vs. True labels (Red=Helix, Yellow=Sheet, Green=Coil).
+*   **Contact Maps:** Side-by-side comparison of Predicted probabilities vs. Ground truth binary maps.
+
+---
+
+## 🏆 Performance Benchmarks (CB513)
+
+| Model | Q3 Accuracy | MCC (Macro) | Precision@L |
+| :--- | :--- | :--- | :--- |
+| **CNN** | ~82.9% | 0.7326 | TBD |
+| **BiLSTM** | Training... | Training... | Training... |
+| **Transformer** | Training... | Training... | Training... |
+
+---
+
+## 👥 Contributors
+
+*   **Shubham** — Data Engineering & Feature Extraction
+*   **Shivam** — Model Architecture & Multi-task Loss
+*   **Tanishka** — Evaluation Metrics & Quantitative Analysis
+*   **Vaibhav** — Master Pipeline & Experiment Integration
+
+---
+*Developed for the Advanced Bioinformatics Modeling Project.*

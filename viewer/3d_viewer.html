@@ -148,6 +148,10 @@
         }
         
         let m = viewer.getModel();
+        if (!m) {
+            alert("No 3D PDB structure data was found in this JSON file! Since the dataset uses IDs like 'cb513_0001' instead of real PDB codes, the script couldn't fetch the 3D coordinates from RCSB. You'll need to run this on real PDB IDs to see the 3D structure.");
+            return;
+        }
         let atoms = m.selectedAtoms({});
         
         // Map residues to indices. PDB residue numbers might not start at 1 or be continuous
