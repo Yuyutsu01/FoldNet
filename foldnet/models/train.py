@@ -13,7 +13,8 @@ def train_foldnet(
     val_loader, 
     config, 
     checkpoint_dir='results/checkpoints',
-    logs_dir='results/logs'
+    logs_dir='results/logs',
+    resume_ckpt=None
 ):
     """
     Master training function using PyTorch Lightning.
@@ -76,7 +77,7 @@ def train_foldnet(
     )
 
     # 4. Start Training
-    trainer.fit(model, train_loader, val_loader)
+    trainer.fit(model, train_loader, val_loader, ckpt_path=resume_ckpt)
     
     return trainer, model
 

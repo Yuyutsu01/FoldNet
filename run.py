@@ -103,7 +103,8 @@ def main():
                 val_loader, 
                 config,
                 checkpoint_dir=config_full.get('paths', {}).get('checkpoint_dir', 'results/checkpoints'),
-                logs_dir=config_full.get('paths', {}).get('logs_dir', 'results/logs')
+                logs_dir=config_full.get('paths', {}).get('logs_dir', 'results/logs'),
+                resume_ckpt=args.checkpoint if args.checkpoint else None
             )
             logger.info("Training process completed successfully.")
         

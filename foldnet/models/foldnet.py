@@ -73,7 +73,7 @@ class FoldNet(pl.LightningModule):
         
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
-        self.log('train_loss', total_loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log('train_loss', total_loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=features.size(0))
         
         return total_loss
 
@@ -89,7 +89,7 @@ class FoldNet(pl.LightningModule):
         contact_loss = self.contact_criterion(contact_probs, contact_map.float())
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
-        self.log('val_loss', total_loss, prog_bar=True)
+        self.log('val_loss', total_loss, prog_bar=True, batch_size=features.size(0))
         
         # Save predictions for epoch-end metrics
         ss_preds = torch.argmax(ss_logits, dim=-1)
@@ -137,7 +137,8 @@ class FoldNet(pl.LightningModule):
         
         for k, v in metrics.items():
             if isinstance(v, (int, float)):
-                self.log(f"val_{k}", v, prog_bar=(k == 'Q3'))
+                # Log with a small batch_size just to satisfy Lightning's inference
+                self.log(f"val_{k}", v, prog_bar=(k == 'Q3'), batch_size=1)
                 
         # Optional: Log images to wandb
         try:
