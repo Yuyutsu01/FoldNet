@@ -106,16 +106,16 @@ def get_dataloaders(fold: int, config: dict):
         batch_size  = config.get('batch_size', 8),
         shuffle     = True,
         collate_fn  = collate_fn,
-        num_workers = 0,      # 0 = required on Windows
-        pin_memory  = False,
+        num_workers = config.get('num_workers', 15),
+        pin_memory  = True,
     )
     val_loader = DataLoader(
         val_ds,
         batch_size  = config.get('batch_size', 8),
         shuffle     = False,
         collate_fn  = collate_fn,
-        num_workers = 0,
-        pin_memory  = False,
+        num_workers = config.get('num_workers', 15),
+        pin_memory  = True,
     )
 
     print(f"[dataset] Fold {fold} → train={len(train_ds)}  val={len(val_ds)}")

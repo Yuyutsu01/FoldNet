@@ -1,6 +1,7 @@
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
+from pytorch_lightning.loggers import WandbLogger
 from .foldnet import FoldNet
 import torch.optim as nn_optim
 
@@ -46,6 +47,13 @@ def train_foldnet(
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
     # 3. Trainer setup
+    # Initialize wandb logger
+    wandb_logger = WandbLogger(
+        project='FoldNet', 
+        name=config.get('name', f"foldnet-{config.get('encoder_type', 'cnn')}"),
+        save_dir=logs_dir
+    )
+    
     # Note: Using 'gpu' if available, otherwise 'cpu'
     accelerator = 'gpu' if torch.cuda.is_available() else 'cpu'
     devices = 1
@@ -58,6 +66,7 @@ def train_foldnet(
         accelerator=accelerator,
         devices=devices,
         precision=precision,
+        logger=wandb_logger,
         callbacks=[checkpoint_callback, early_stop_callback, lr_monitor],
         default_root_dir=logs_dir,
         gradient_clip_val=1.0,

@@ -23,7 +23,7 @@ training:
 
 data:
   max_len: 512               # truncate/pad all sequences to this length
-  # dataset_path: data/processed/cath4.2.pkl  # uncomment when real data ready
+  esm_dir: foldnet/data/processed/esm2_embeddings
 
 callbacks:
   early_stopping:

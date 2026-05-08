@@ -16,13 +16,14 @@ model:
 training:
   lr: 1e-3
   epochs: 100
-  batch_size: 4              # safe for 6GB GPU
-  accumulate_grad_batches: 4 # effective batch size = 16
+  batch_size: 2              # reduced from 4 to avoid OOM on 6GB GPU
+  accumulate_grad_batches: 8 # effective batch size = 16 (2 * 8)
   val_split: 0.1
   num_workers: 0             # 0 = safe on Windows
 
 data:
   max_len: 512
+  esm_dir: foldnet/data/processed/esm2_embeddings 
 
 callbacks:
   early_stopping:

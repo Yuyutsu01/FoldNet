@@ -15,6 +15,10 @@ import torch
 
 from foldnet.data.dataset import get_dataloaders
 from foldnet.models.train import train_foldnet
+from foldnet.utils.predict import predict
+from foldnet.utils.metrics import evaluate_metrics
+from foldnet.utils.visualise import create_visualisations
+from scripts.export_for_3d import export_3d_json
 
 def setup_logging():
     logging.basicConfig(
@@ -27,6 +31,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train FoldNet model")
     parser.add_argument("--config", type=str, default="configs/baseline_cnn.yaml", help="Path to YAML config file")
     parser.add_argument("--fold", type=int, default=0, help="Cross-validation fold to train (0-4)")
+    parser.add_argument("--visualise", action="store_true", help="Run static and 3D visualisations after training/evaluation")
     args = parser.parse_args()
 
     setup_logging()
@@ -90,6 +95,33 @@ def main():
             logs_dir=config_full.get('paths', {}).get('logs_dir', 'results/logs')
         )
         logger.info("Training process completed successfully.")
+        
+        # 4. Visualisation
+        if args.visualise:
+            logger.info("Starting Visualisation Pipeline...")
+            model.eval()
+            
+            # Run prediction on validation set
+            ss_p, ss_t, c_p, c_t, seq_lens = predict(model, val_loader)
+            metrics = evaluate_metrics(ss_p, ss_t, c_p, c_t, seq_lens)
+            logger.info(f"Evaluation Metrics: Q3={metrics.get('Q3', 0):.2f}%, MCC={metrics.get('MCC_Macro', 0):.4f}")
+            
+            out_dir = config_full.get('paths', {}).get('vis_dir', 'results/visualisations')
+            os.makedirs(out_dir, exist_ok=True)
+            
+            # Visualise the first 3 proteins in the validation set
+            num_to_vis = min(3, len(seq_lens))
+            for i in range(num_to_vis):
+                prot_id = f"test_protein_{i+1}"
+                logger.info(f"Generating visualisations for {prot_id}")
+                create_visualisations(ss_p[i], ss_t[i], c_p[i], c_t[i], seq_lens[i], prot_id, out_dir=out_dir)
+                
+                # Export JSON for 3D Viewer
+                json_path = os.path.join(out_dir, f"{prot_id}_viewer.json")
+                export_3d_json(prot_id, ss_p[i], c_p[i], json_path) 
+                
+            logger.info(f"Visualisations saved to {out_dir}")
+
     except Exception:
         logger.exception("Training failed with the following error:")
 
