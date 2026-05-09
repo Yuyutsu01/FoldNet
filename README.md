@@ -85,9 +85,9 @@ FoldNet generates detailed visual reports for every protein in the validation se
 
 | Model | Q3 Accuracy (%) | MCC (Macro) | Precision@L |
 | :--- | :--- | :--- | :--- |
-| **BiLSTM** | **83.66%** | **0.7448** | **0.0258** |
-| **CNN** | 82.93% | 0.7326 | 0.0226 |
-| **Transformer** | Training... | Training... | Training... |
+| **CNN** | **83.66%** | **0.7448** | 0.0258 |
+| **BiLSTM** | 82.55% | 0.7270 | **0.1022** |
+| **Transformer** | 82.93% | 0.7326 | 0.0226 |
 
 ---
 
