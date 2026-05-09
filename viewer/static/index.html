@@ -11,132 +11,132 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Plotly & Mermaid -->
+    <!-- Plotly -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.2.3/dist/mermaid.min.js"></script>
 
     <style>
         :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
             --primary-accent: #2c7da0;
-            --ss-h: #e63946;
-            /* Helix: Red */
-            --ss-e: #f4a261;
-            /* Sheet: Orange-Yellow */
-            --ss-c: #a8dadc;
-            /* Coil: Light Blue-Grey */
-            --bg-light: #f8f9fa;
+            --ss-h: #e63946; /* Helix: Red */
+            --ss-e: #f4a261; /* Sheet: Orange-Yellow */
+            --ss-c: #a8dadc; /* Coil: Light Blue-Grey */
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255,255,255,0.1);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-light);
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.2); }
 
         /* Hero Header */
         .hero {
             background: linear-gradient(135deg, #1a4f66 0%, var(--primary-accent) 100%);
-            color: rgb(248, 242, 242);
-            padding: 4rem 0;
+            color: white;
+            padding: 3rem 0;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
         }
 
         .glass-title-container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 16px;
-            padding: 2rem 4rem;
+            padding: 1.5rem 3rem;
             display: inline-block;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            transition: all 0.3s ease;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
         }
 
-        .glass-title-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
         .foldnet-title {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 800;
-            letter-spacing: 1px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             margin-bottom: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 8px;
         }
 
-        .foldnet-logo {
-            height: 90px;
-            width: auto;
-            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3));
-            transition: transform 0.4s ease;
-        }
-
-        .glass-title-container:hover .foldnet-logo {
-            transform: rotate(-5deg) scale(1.05);
-        }
-
-        /* Nav Tabs */
-        .nav-tabs {
-            border-bottom: 2px solid #dee2e6;
-            margin-bottom: 2rem;
-        }
-
-        .nav-tabs .nav-link {
-            color: #555;
-            font-weight: 500;
-            border: none;
-            border-bottom: 3px solid transparent;
-            padding: 10px 20px;
-        }
-
-        .nav-tabs .nav-link:hover {
-            color: var(--primary-accent);
-            border-color: #e9ecef;
-        }
-
-        .nav-tabs .nav-link.active {
-            color: var(--primary-accent);
-            background: none;
-            border-color: var(--primary-accent);
-        }
+        .foldnet-logo { height: 70px; }
 
         /* Cards */
         .card {
-            border: none;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
+            color: var(--text-main);
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
-
-        .card:hover {
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        }
-
         .card-header {
-            background-color: white;
-            border-bottom: 1px solid #f0f0f0;
-            border-radius: 12px 12px 0 0 !important;
-            padding: 15px 20px;
+            background-color: transparent;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-weight: 600;
         }
 
         /* Metric Cards */
-        .metric-card {
-            border-left: 4px solid var(--primary-accent);
-        }
-
+        .metric-card { border-left: 4px solid var(--primary-accent); }
         .metric-value {
             font-size: 2.2rem;
             font-weight: 700;
-            color: #2b2b2b;
+            color: var(--text-main);
+        }
+
+        /* Nav Tabs */
+        .nav-tabs .nav-link { color: var(--text-muted); }
+        .nav-tabs .nav-link.active {
+            color: var(--primary-accent);
+            background: none;
+            border-bottom: 3px solid var(--primary-accent);
         }
 
         /* Secondary Structure Bars */
@@ -239,6 +239,11 @@
                 </h1>
                 <p class="lead mb-0 mt-3 fw-medium" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Deep Learning for
                     Protein Secondary Structure and Contact Map Prediction</p>
+                <div class="mt-4">
+                    <button id="theme-toggle" class="theme-toggle">
+                        <i class="fa-solid fa-moon me-2"></i> <span>Dark Mode</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -280,8 +285,11 @@
                                 <button class="btn btn-sm btn-outline-secondary mb-2" onclick="loadDemo('2rn2')">Load
                                     2rn2</button>
                             </div>
-                            <textarea id="seq-input" class="form-control mb-3" rows="6"
+                            <textarea id="seq-input" class="form-control mb-2" rows="6"
                                 placeholder="Enter amino acid sequence (min 30 residues)..."></textarea>
+                            <div id="val-indicator" class="small mb-3">
+                                <i class="fa-solid fa-circle-info me-1"></i> <span id="val-text">Ready for input (Min 30 chars)</span>
+                            </div>
                             <div id="seq-warning" class="text-danger small mb-3 d-none"><i
                                     class="fa-solid fa-triangle-exclamation"></i> Sequence must be at least 30 valid
                                 standard amino acids.</div>
@@ -297,14 +305,38 @@
                             <div>
                                 <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"
                                     role="status"></div>
-                                <h5>Extracting ESM-2 Features & Running FoldNet...</h5>
-                                <p class="text-muted">This takes a few seconds.</p>
-                                <div class="skeleton mt-4 mx-auto" style="max-width: 80%;"></div>
+                                <h5 id="predict-status-title">Extracting ESM-2 Features & Running FoldNet...</h5>
+                                <div class="progress mx-auto mt-4" style="width: 80%; height: 10px;">
+                                    <div id="predict-progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <p class="text-muted mt-3" id="predict-status-desc">Step 1: Calculating ESM-2 Language Embeddings</p>
                             </div>
                         </div>
 
                         <!-- Results State -->
                         <div id="predict-results" class="d-none">
+                            <!-- Metric Cards for Predictor -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card text-center shadow-sm metric-card h-100 p-3" style="border-left-color: #3498db;">
+                                        <h6 class="text-muted text-uppercase small fw-bold">Sequence Status</h6>
+                                        <div class="metric-value" style="font-size: 1.2rem; padding-top: 10px;" id="pred-metric-status">New Sequence</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
+                                        <h6 class="text-muted text-uppercase small fw-bold">Sequence Length</h6>
+                                        <div class="metric-value" id="pred-metric-len">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
+                                        <h6 class="text-muted text-uppercase small fw-bold">Confidence</h6>
+                                        <div class="metric-value" id="pred-metric-conf">High</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="card shadow-sm mb-4">
                                 <div class="card-header bg-white">
                                     <h5 class="mb-0 fw-bold"><i
@@ -326,10 +358,16 @@
                             </div>
 
                             <div class="card shadow-sm">
-                                <div class="card-header bg-white">
+                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0 fw-bold"><i
                                             class="fa-solid fa-border-all text-primary me-2"></i>Predicted Contact Map
                                     </h5>
+                                    <select id="map-color-picker" class="form-select form-select-sm w-auto">
+                                        <option value="Blues" selected>Scale: Blues (Light)</option>
+                                        <option value="Viridis">Scale: Viridis (Dark)</option>
+                                        <option value="Magma">Scale: Magma</option>
+                                        <option value="Plasma">Scale: Plasma</option>
+                                    </select>
                                 </div>
                                 <div class="card-body">
                                     <div id="predict-contact-map" class="heatmap-container"></div>
@@ -541,53 +579,78 @@
                     <div class="col-lg-8 mx-auto">
                         <div class="card shadow-sm p-4 mb-4">
                             <h4 class="fw-bold mb-4">FoldNet Architecture</h4>
-                            <div class="bg-light p-4 rounded text-center mb-4 overflow-auto border">
-                                <div class="mermaid">
-                                    graph TD
-                                    A["Amino Acid Sequence"] -->|"Tokenizer"| B("ESM-2 650M")
-                                    B -->|"1280-dim Embeddings"| C{"BiLSTM Encoder"}
-                                    C -->|"Hidden States"| D["1D CNN Head"]
-                                    C -->|"Hidden States"| E["Outer Concatenation"]
-                                    D --> F(("Secondary Structure (3 Classes)"))
-                                    E -->|"L x L x 2H"| G["2D ResNet Block"]
-                                    G --> H(("Contact Map Probabilities"))
-
-                                    style B fill:#e1f5fe,stroke:#2c7da0,stroke-width:2px
-                                    style C fill:#fff3e0,stroke:#f4a261,stroke-width:2px
-                                    style F fill:#ffebee,stroke:#e63946,stroke-width:2px
-                                    style H fill:#e8f5e9,stroke:#e63946,stroke-width:2px
+                            
+                            <!-- Custom CSS Architecture Roadmap -->
+                            <div class="d-flex flex-column align-items-center py-5 mb-5 bg-light rounded border position-relative overflow-hidden">
+                                <div style="position: absolute; top: -20px; right: -20px; font-size: 10rem; color: rgba(0,0,0,0.03); transform: rotate(15deg); z-index: 0;"><i class="fa-solid fa-dna"></i></div>
+                                
+                                <div class="p-3 bg-white border rounded shadow-sm mb-3 text-center position-relative" style="width: 280px; z-index: 1;">
+                                    <div class="badge bg-primary position-absolute top-0 start-0 m-2">Step 1</div>
+                                    <i class="fa-solid fa-font text-primary mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    <strong>Input Sequence</strong><br><span class="small text-muted">Raw Amino Acid String</span>
+                                </div>
+                                
+                                <div class="text-muted my-2"><i class="fa-solid fa-chevron-down"></i></div>
+                                
+                                <div class="p-3 bg-info bg-opacity-10 border border-info rounded shadow-sm mb-3 text-center position-relative" style="width: 280px; z-index: 1;">
+                                    <div class="badge bg-info position-absolute top-0 start-0 m-2">Step 2</div>
+                                    <i class="fa-solid fa-microchip text-info mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    <strong>ESM-2 Transformer</strong><br><span class="small text-muted">1280-dim Language Embeddings</span>
+                                </div>
+                                
+                                <div class="text-muted my-2"><i class="fa-solid fa-chevron-down"></i></div>
+                                
+                                <div class="p-3 bg-warning bg-opacity-10 border border-warning rounded shadow-sm mb-4 text-center position-relative" style="width: 280px; z-index: 1;">
+                                    <div class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Step 3</div>
+                                    <i class="fa-solid fa-layer-group text-warning mb-2 d-block" style="font-size: 1.5rem;"></i>
+                                    <strong>BiLSTM Encoder</strong><br><span class="small text-muted">Sequential Context Extraction</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-center gap-5 w-100 mt-2 position-relative" style="z-index: 1;">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="mb-2 text-muted" style="transform: rotate(-30deg)"><i class="fa-solid fa-arrow-down"></i></div>
+                                        <div class="p-3 bg-danger bg-opacity-10 border border-danger rounded shadow-sm text-center" style="width: 240px;">
+                                            <i class="fa-solid fa-chart-bar text-danger mb-2 d-block" style="font-size: 1.2rem;"></i>
+                                            <strong>1D CNN SS-Head</strong><br><span class="small text-muted">Per-residue Classification (H/E/C)</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="mb-2 text-muted" style="transform: rotate(30deg)"><i class="fa-solid fa-arrow-down"></i></div>
+                                        <div class="p-3 bg-success bg-opacity-10 border border-success rounded shadow-sm text-center" style="width: 240px;">
+                                            <i class="fa-solid fa-border-all text-success mb-2 d-block" style="font-size: 1.2rem;"></i>
+                                            <strong>2D ResNet Contact-Head</strong><br><span class="small text-muted">Spatial Residue-Pair Probabilities</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <h5 class="fw-bold mt-4">Training Hyperparameters</h5>
-                            <table class="table table-bordered mt-3">
-                                <tbody>
-                                    <tr>
-                                        <th class="bg-light" style="width: 40%;">Feature Representation</th>
-                                        <td>ESM-2 (esm2_t33_650M_UR50D)</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Loss Function</th>
-                                        <td>CrossEntropy (SS) + BCEWithLogits (Contacts)</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Contact Loss Weight (λ)</th>
-                                        <td>0.01</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Optimizer</th>
-                                        <td>AdamW (LR: 1e-4)</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Batch Size</th>
-                                        <td>8</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Max Epochs</th>
-                                        <td>100</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            
+                            <h5 class="fw-bold mt-4">Detailed Specifications</h5>
+                            <div class="row g-4 mt-1">
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 bg-light p-3">
+                                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-gears me-2 text-primary"></i>Model Components</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2 d-flex justify-content-between"><span>ESM-2 Backbone</span><span class="badge bg-white text-dark border">650M Params</span></li>
+                                            <li class="mb-2 d-flex justify-content-between"><span>BiLSTM Layers</span><span class="badge bg-white text-dark border">2 Layers</span></li>
+                                            <li class="mb-2 d-flex justify-content-between"><span>Hidden Units</span><span class="badge bg-white text-dark border">512 (Bidirectional)</span></li>
+                                            <li class="mb-2 d-flex justify-content-between"><span>Activation</span><span class="badge bg-white text-dark border">ReLU / Sigmoid</span></li>
+                                            <li class="mb-0 d-flex justify-content-between"><span>Total Parameters</span><span class="badge bg-white text-dark border">~675M</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 bg-light p-3">
+                                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-vial me-2 text-primary"></i>Training Specs</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2 d-flex justify-content-between"><span>Optimizer</span><span class="badge bg-white text-dark border">AdamW</span></li>
+                                            <li class="mb-2 d-flex justify-content-between"><span>Learning Rate</span><span class="badge bg-white text-dark border">1e-4</span></li>
+                                            <li class="mb-2 d-flex justify-content-between"><span>Precision</span><span class="badge bg-white text-dark border">FP16-Mixed</span></li>
+                                            <li class="mb-2 d-flex justify-content-between"><span>Contact Weight</span><span class="badge bg-white text-dark border">λ = 0.01</span></li>
+                                            <li class="mb-0 d-flex justify-content-between"><span>Dataset Size</span><span class="badge bg-white text-dark border">CB513 / PDB Split</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -612,7 +675,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/app.js"></script>
-    <script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
 </body>
 
 </html>

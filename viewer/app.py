@@ -20,6 +20,7 @@ foldnet_model = None
 esm_model = None
 esm_batch_converter = None
 startup_error = None
+test_protein_cache = {} # Cache sequences for lookup
 
 # Paths
 DASHBOARD_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'dashboard'))
@@ -32,7 +33,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.on_event("startup")
 async def startup_event():
     """Load the model on startup to keep the API fast."""
-    global foldnet_model, esm_model, esm_batch_converter, startup_error
+    global foldnet_model, esm_model, esm_batch_converter, startup_error, test_protein_cache
     try:
         # Load the best FoldNet model
         ckpt_path = os.path.join(os.path.dirname(__file__), '..', 'results', 'checkpoints', 'foldnet-epoch=08-val_loss=0.5015.ckpt')
@@ -53,6 +54,17 @@ async def startup_event():
         esm_model.eval()
         # Keep ESM on CPU to prevent Out-Of-Memory errors on 6GB GPUs alongside FoldNet
         print("ESM-2 loaded on CPU.")
+
+        # Cache test proteins for lookup
+        print("Caching test sequences...")
+        prot_dir = os.path.join(DASHBOARD_DATA_DIR, "proteins")
+        if os.path.exists(prot_dir):
+            for f in os.listdir(prot_dir):
+                if f.endswith(".json"):
+                    with open(os.path.join(prot_dir, f), 'r') as jf:
+                        pdata = json.load(jf)
+                        test_protein_cache[pdata['sequence']] = pdata
+        print(f"Cached {len(test_protein_cache)} test sequences.")
     except Exception as e:
         import traceback
         startup_error = str(e) + "\n" + traceback.format_exc()
@@ -120,9 +132,15 @@ async def predict_sequence(req: PredictRequest):
         ss_pred = torch.argmax(ss_logits[0], dim=-1).cpu().numpy()
         c_probs = torch.sigmoid(contact_probs[0]).cpu().numpy()
         
+    # Check if sequence is in test set to provide accuracy metrics
+    test_data = test_protein_cache.get(seq)
+    
     return {
         "sequence": seq,
         "length": L,
         "pred_ss": ss_pred.tolist(),
-        "pred_contacts": np.round(c_probs, 3).tolist()
+        "pred_contacts": np.round(c_probs, 3).tolist(),
+        "is_test_set": test_data is not None,
+        "protein_id": test_data['protein_id'] if test_data else None,
+        "metrics": test_data['metrics'] if test_data else None
     }
