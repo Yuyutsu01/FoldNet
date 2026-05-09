@@ -12,10 +12,7 @@ __pycache__/
 .Python
 
 # ── Data files (too large for git) ────────────────────────────────────────────
-**/data/raw/
-**/data/processed/**/
-!**/data/processed/*.csv
-!**/data/processed/*.json
+data/
 **/*.pdb
 **/*.npy
 **/*.npz
@@ -26,15 +23,17 @@ __pycache__/
 results/
 *.pt
 *.ckpt
+wandb/
 
 # ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# ── OS / IDE ──────────────────────────────────────────────────────────────────
+# ── OS / IDE / AI ─────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 .claude/
+.gemini/
 skills/
 .env

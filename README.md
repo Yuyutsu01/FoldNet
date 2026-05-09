@@ -1,102 +1,88 @@
-# 🧬 FoldNet: Protein Structure & Contact Prediction
+<div align="center">
+  <img src="viewer/static/logo.png" alt="FoldNet Logo" width="150" />
+  <h1>🧬 FoldNet</h1>
+  <p><strong>Deep Learning for Protein Secondary Structure and Contact Map Prediction</strong></p>
 
-[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Lightning](https://img.shields.io/badge/-Lightning-792EE5?style=for-the-badge&logo=pytorchlightning&logoColor=white)](https://www.pytorchlightning.ai/)
-[![W&B](https://img.shields.io/badge/Weights_&_Biases-FFBE00?style=for-the-badge&logo=WeightsAndBiases&logoColor=white)](https://wandb.ai/)
-
-**FoldNet** is a state-of-the-art multi-task deep learning framework designed to predict **Secondary Structure** and **Residue-Level Contact Maps** directly from protein sequences. By leveraging pre-computed **ESM-2 Embeddings**, FoldNet achieves high accuracy while comparing multiple architectural backbones.
+  [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+  [![ESM-2](https://img.shields.io/badge/Meta_ESM--2-0668E1?style=for-the-badge&logo=meta&logoColor=white)](https://github.com/facebookresearch/esm)
+</div>
 
 ---
 
-## ✨ Key Features
+## ⚡ What is FoldNet?
 
-*   🚀 **Multi-Task Learning:** Simultaneous prediction of 3-class secondary structure (Helix, Sheet, Coil) and binary contact maps.
-*   🧠 **Multiple Encoders:** Comparative support for **1D CNN (Residual)**, **BiLSTM**, and **Transformer** architectures.
-*   📊 **ESM-2 Integration:** Uses high-dimensional (1280-dim) protein language model embeddings for superior feature representation.
-*   📈 **Rich Visualisation:** Automatic generation of colored secondary structure bar plots and contact map heatmaps.
-*   🧪 **Experiment Tracking:** Full integration with **Weights & Biases** for live monitoring of Q3, MCC, and Precision@L.
-*   🛠️ **Robust Pipeline:** End-to-end support from data preprocessing to benchmarking and visualization.
+**FoldNet** is an end-to-end multi-task deep learning framework. It takes a raw protein amino acid sequence and predicts:
+1. **Secondary Structure** (Helix, Sheet, Coil)
+2. **Residue-Level Contact Maps** (Probability of residues interacting < 8Å)
+
+It leverages the massive **650M parameter ESM-2 language model** to extract rich sequence features, passing them through highly optimized **BiLSTM** and **CNN** backbones.
+
+---
+
+## 🌟 The FoldNet Dashboard (NEW!)
+
+We've built a professional, presentation-ready web dashboard to interact with FoldNet!
+
+*   🔮 **Live Predictor:** Paste *any* amino acid sequence. The dashboard extracts ESM-2 features on the fly and predicts the structure instantly.
+*   📊 **Interactive Visualisations:** Beautiful, responsive residue-by-residue secondary structure bars and Plotly heatmaps for contact probabilities.
+*   🔍 **Test Set Error Analysis:** Browse the CB513 test set. Instantly compare Ground Truth vs. Predictions with a custom **Red-Blue Difference Heatmap** to spot model errors.
+*   📈 **Downloadable Reports:** View our architecture and export full validation benchmarks to CSV with a single click.
+
+### 🚀 How to Run the Dashboard
+
+1. **Install Requirements:**
+   Ensure you have all dependencies, including `fair-esm` and `fastapi`:
+   ```powershell
+   pip install -r requirements.txt
+   pip install fair-esm fastapi uvicorn
+   ```
+
+2. **Start the Server:**
+   ```powershell
+   uvicorn viewer.app:app --reload
+   ```
+
+3. **Open your Browser:**
+   Navigate to 👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+
+*(Note: The first time you run a prediction, it will take a few minutes to download the 2.6GB ESM-2 model weights in the background).*
 
 ---
 
 ## 🏗️ Project Architecture
 
-```
-FoldNet/
-├── foldnet/
-│   ├── data/                 # Data Pipeline (Shubham)
-│   │   ├── dataset.py        # PyTorch Dataset & Collate logic
-│   │   ├── preprocess_*.py   # Feature & Label extraction scripts
-│   ├── models/               # Model Architectures (Shivam)
-│   │   ├── encoders.py       # CNN, BiLSTM, Transformer implementations
-│   │   ├── heads.py          # SS & Contact prediction heads
-│   │   └── foldnet.py        # Multi-task LightningModule
-│   ├── evaluation/           # Metrics & Plotting (Tanishka & Vaibhav)
-│   │   ├── metrics_ss.py     # Q3, MCC, Confusion Matrix
-│   │   ├── metrics_contacts.py# Precision@L, Long-range precision
-│   │   └── visualisation.py  # Static PNG generation
-├── configs/                  # Experiment Configurations (YAML)
-├── results/                  # Checkpoints, Logs, and Visualisations
-├── scripts/                  # Master Pipeline & Benchmarking
-└── tests/                    # Unit Tests (data & model verification)
+```mermaid
+graph TD
+    A[Amino Acid Sequence] --> B[ESM-2 650M]
+    B --> C[BiLSTM Encoder]
+    C --> D[1D CNN Head]
+    C --> E[Outer Concatenation]
+    D --> F[Secondary Structure]
+    E --> G[2D ResNet Block]
+    G --> H[Contact Map]
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🏆 Performance Benchmarks (CB513 Test Set)
 
-### 1. Installation
-```powershell
-git clone https://github.com/Yuyutsu01/FoldNet.git
-cd FoldNet
-pip install -r requirements.txt
-```
+Tested strictly on unseen PDB sequences.
 
-### 2. Preprocessing
-Ensure your ESM-2 embeddings and contact maps are in `data/processed/`.
-```powershell
-python foldnet/data/preprocess_contacts.py
-```
-
-### 3. Training
-Run an experiment using a YAML config:
-```powershell
-python run.py --config configs/baseline_cnn.yaml
-```
-
-### 4. Benchmarking & Evaluation
-Compare all models and generate a report:
-```powershell
-python scripts/benchmark.py --cnn results/checkpoints/cnn_best.ckpt
-```
-
----
-
-## 📊 Visualisation Examples
-
-FoldNet generates detailed visual reports for every protein in the validation set:
-
-*   **Secondary Structure:** Predicted vs. True labels (Red=Helix, Yellow=Sheet, Green=Coil).
-*   **Contact Maps:** Side-by-side comparison of Predicted probabilities vs. Ground truth binary maps.
-
----
-
-## 🏆 Performance Benchmarks (CB513)
-
-| Model | Q3 Accuracy (%) | MCC (Macro) | Precision@L |
+| Architecture | Q3 Accuracy (%) | MCC (Macro) | Precision@L |
 | :--- | :--- | :--- | :--- |
-| **CNN** | **83.66%** | **0.7448** | 0.0258 |
-| **BiLSTM** | 82.55% | 0.7270 | **0.1022** |
+| **CNN (Residual)** | **83.66%** | **0.7448** | 0.0258 |
+| **BiLSTM (Best)** | 82.55% | 0.7270 | **0.1022** |
 | **Transformer** | 82.93% | 0.7326 | 0.0226 |
 
 ---
 
-## 👥 Contributors
+## 👥 The Team
 
 *   **Shubham** — Data Engineering & Feature Extraction
 *   **Shivam** — Model Architecture & Multi-task Loss
 *   **Tanishka** — Evaluation Metrics & Quantitative Analysis
-*   **Vaibhav** — Master Pipeline & Experiment Integration
+*   **Vaibhav** — Master Pipeline, Dashboard, & Integration
 
 ---
 *Developed for the Advanced Bioinformatics Modeling Project.*
