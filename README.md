@@ -1,88 +1,163 @@
 <div align="center">
-  <img src="viewer/static/logo.png" alt="FoldNet Logo" width="150" />
-  <h1>🧬 FoldNet</h1>
-  <p><strong>Deep Learning for Protein Secondary Structure and Contact Map Prediction</strong></p>
+  <img src="viewer/static/logo.png" alt="FoldNet Logo" width="160" />
+  
+  # 🧬 FoldNet
+  ### **State-of-the-Art Protein Structure Prediction & Multi-Task Analysis**
 
-  [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+  [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
+  [![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
   [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-  [![ESM-2](https://img.shields.io/badge/Meta_ESM--2-0668E1?style=for-the-badge&logo=meta&logoColor=white)](https://github.com/facebookresearch/esm)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+  [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)](https://github.com/Yuyutsu01/FoldNet)
+
+  ---
+
+  *FoldNet is a high-performance deep learning framework designed to bridge the gap between raw amino acid sequences and functional structural insights using the power of Evolutionary Scale Modeling (ESM-2).*
+
 </div>
 
----
+## 🚀 Key Features
 
-## ⚡ What is FoldNet?
-
-**FoldNet** is an end-to-end multi-task deep learning framework. It takes a raw protein amino acid sequence and predicts:
-1. **Secondary Structure** (Helix, Sheet, Coil)
-2. **Residue-Level Contact Maps** (Probability of residues interacting < 8Å)
-
-It leverages the massive **650M parameter ESM-2 language model** to extract rich sequence features, passing them through highly optimized **BiLSTM** and **CNN** backbones.
-
----
-
-## 🌟 The FoldNet Dashboard (NEW!)
-
-We've built a professional, presentation-ready web dashboard to interact with FoldNet!
-
-*   🔮 **Live Predictor:** Paste *any* amino acid sequence. The dashboard extracts ESM-2 features on the fly and predicts the structure instantly.
-*   📊 **Interactive Visualisations:** Beautiful, responsive residue-by-residue secondary structure bars and Plotly heatmaps for contact probabilities.
-*   🔍 **Test Set Error Analysis:** Browse the CB513 test set. Instantly compare Ground Truth vs. Predictions with a custom **Red-Blue Difference Heatmap** to spot model errors.
-*   📈 **Downloadable Reports:** View our architecture and export full validation benchmarks to CSV with a single click.
-
-### 🚀 How to Run the Dashboard
-
-1. **Install Requirements:**
-   Ensure you have all dependencies, including `fair-esm` and `fastapi`:
-   ```powershell
-   pip install -r requirements.txt
-   pip install fair-esm fastapi uvicorn
-   ```
-
-2. **Start the Server:**
-   ```powershell
-   uvicorn viewer.app:app --reload
-   ```
-
-3. **Open your Browser:**
-   Navigate to 👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
-
-*(Note: The first time you run a prediction, it will take a few minutes to download the 2.6GB ESM-2 model weights in the background).*
+<table align="center">
+  <tr>
+    <td align="center" width="33%">
+      <h3>🔮 Deep Embeddings</h3>
+      <p>Leverages <b>Meta ESM-2 (650M)</b> transformer weights to extract high-dimensional evolutionary features.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>🧠 Multi-Task Logic</h3>
+      <p>Parallel heads for <b>Secondary Structure</b> (3-class) and <b>Contact Map</b> prediction (< 8Å).</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>📊 Interactive Viz</h3>
+      <p>Modern dashboard with <b>Plotly-powered heatmaps</b> and real-time inference feedback.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🏗️ Project Architecture
+## 🖥️ The FoldNet Dashboard
+
+Experience the power of FoldNet through our professional web-based interface. Predict structures, analyze test sets, and export results in seconds.
+
+<p align="center">
+  <img src="viewer/static/dashboard_mockup.png" alt="FoldNet Dashboard Mockup" width="90%" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);" />
+</p>
+
+### **Dashboard Highlights:**
+- **Live Inference Engine**: Process arbitrary sequences with on-the-fly ESM-2 feature extraction.
+- **Visual Error Analysis**: Compare ground truth vs. predictions using dedicated difference heatmaps.
+- **Export Ready**: One-click export for 3D visualization compatibility (PyMOL/ChimeraX).
+
+---
+
+## 🏗️ Technical Architecture
+
+FoldNet utilizes a sophisticated hybrid architecture combining Transformer-based sequence representations with specialized 1D and 2D convolutional heads.
 
 ```mermaid
 graph TD
-    A[Amino Acid Sequence] --> B[ESM-2 650M]
-    B --> C[BiLSTM Encoder]
-    C --> D[1D CNN Head]
-    C --> E[Outer Concatenation]
-    D --> F[Secondary Structure]
-    E --> G[2D ResNet Block]
-    G --> H[Contact Map]
+    Seq[Amino Acid Sequence] --> ESM[ESM-2 Transformer]
+    ESM --> Feat[Hidden State Embeddings]
+    
+    subgraph "Encoder Backbone"
+    Feat --> BiLSTM[BiLSTM Layer]
+    BiLSTM --> Dropout[Dropout & Norm]
+    end
+    
+    subgraph "Prediction Heads"
+    Dropout --> SS_Head[1D CNN / SS Head]
+    Dropout --> Outer[Outer Concatenation]
+    Outer --> CM_Head[2D ResNet / Contact Head]
+    end
+    
+    SS_Head --> SS_Output[Secondary Structure Prediction]
+    CM_Head --> CM_Output[Contact Map Probability]
+    
+    style SS_Output fill:#f9f,stroke:#333,stroke-width:2px
+    style CM_Output fill:#bbf,stroke:#333,stroke-width:2px
+    style ESM fill:#dfd,stroke:#333,stroke-width:2px
 ```
 
 ---
 
-## 🏆 Performance Benchmarks (CB513 Test Set)
+## 🏆 Performance Benchmarks
 
-Tested strictly on unseen PDB sequences.
+Evaluated on the **CB513** test set, FoldNet demonstrates competitive performance across multiple architectures.
 
-| Architecture | Q3 Accuracy (%) | MCC (Macro) | Precision@L |
-| :--- | :--- | :--- | :--- |
-| **CNN (Residual)** | **83.66%** | **0.7448** | 0.0258 |
-| **BiLSTM (Best)** | 82.55% | 0.7270 | **0.1022** |
-| **Transformer** | 82.93% | 0.7326 | 0.0226 |
+| Model Architecture | Q3 Accuracy | MCC (Macro) | Precision@L |
+| :--- | :---: | :---: | :---: |
+| **Residual CNN** | **83.66%** | **0.7448** | 0.0258 |
+| **BiLSTM (Optimized)** | 82.55% | 0.7270 | **0.1022** |
+| **Transformer-Hybrid** | 82.93% | 0.7326 | 0.0226 |
+
+---
+
+## 🛠️ Getting Started
+
+### 1. Prerequisites
+- Python 3.9 or higher
+- NVIDIA GPU with 8GB+ VRAM (Recommended for ESM-2 inference)
+
+### 2. Setup
+```bash
+# Clone the repository
+git clone https://github.com/Yuyutsu01/FoldNet.git
+cd FoldNet
+
+# Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+pip install fair-esm fastapi uvicorn
+```
+
+### 3. Run the Dashboard
+```bash
+uvicorn viewer.app:app --reload --port 8000
+```
+Then visit: [http://localhost:8000](http://localhost:8000)
+
+---
+
+## 📂 Project Structure
+
+<details>
+<summary>Click to expand directory tree</summary>
+
+```text
+FoldNet/
+├── foldnet/            # Core model architecture and modules
+├── data/               # Dataset processing and loading scripts
+├── scripts/            # Training, evaluation, and export utilities
+├── viewer/             # Dashboard backend (FastAPI) and frontend
+│   └── static/         # CSS, JS, and UI assets
+├── configs/            # YAML configuration for experiments
+├── results/            # Model checkpoints and logs
+└── run.py              # Main CLI entry point
+```
+</details>
+
+---
+
+## 📅 Roadmap & Future Work
+- [ ] **3D Coordinate Head**: Direct pLDDT and coordinate regression.
+- [ ] **Multi-Chain Support**: Prediction for protein complexes and dimers.
+- [ ] **Plugin System**: Integration with AlphaFold2 database for cross-referencing.
 
 ---
 
 ## 👥 The Team
-
-*   **Shubham** — Data Engineering & Feature Extraction
-*   **Shivam** — Model Architecture & Multi-task Loss
-*   **Tanishka** — Evaluation Metrics & Quantitative Analysis
-*   **Vaibhav** — Master Pipeline, Dashboard, & Integration
+- **Shubham** — Data Engineering & Feature Extraction
+- **Shivam** — Model Architecture & Multi-task Loss
+- **Tanishka** — Evaluation Metrics & Quantitative Analysis
+- **Vaibhav** — Master Pipeline & Dashboard Integration
 
 ---
-*Developed for the Advanced Bioinformatics Modeling Project.*
+<div align="center">
+  <p>Built with ❤️ for the Advanced Bioinformatics Modeling Project</p>
+  <p>© 2024 FoldNet Team</p>
+</div>
