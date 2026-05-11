@@ -96,30 +96,77 @@ Evaluated on the **CB513** test set, FoldNet demonstrates competitive performanc
 
 ## 🛠️ Getting Started
 
-### 1. Prerequisites
-- Python 3.9 or higher
-- NVIDIA GPU with 8GB+ VRAM (Recommended for ESM-2 inference)
+Follow these instructions to set up the project and run the FoldNet dashboard.
 
-### 2. Setup
+### 1. Prerequisites
+- **Python**: 3.9 or higher.
+- **Hardware**: NVIDIA GPU with 8GB+ VRAM (Highly recommended for ESM-2 inference).
+- **Disk Space**: ~5GB for ESM-2 weights and processed datasets.
+
+### 2. Installation (from scratch)
+
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/Yuyutsu01/FoldNet.git
 cd FoldNet
 
-# Create a virtual environment
+# 2. Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+# On Windows:
+.\venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
 
-# Install dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
-pip install fair-esm fastapi uvicorn
 ```
 
-### 3. Run the Dashboard
+### 3. Quick Start (Run Dashboard)
+If you just want to see the results, you can use the pre-trained checkpoints included in the repository.
+
 ```bash
+# Run the FastAPI server
 uvicorn viewer.app:app --reload --port 8000
 ```
 Then visit: [http://localhost:8000](http://localhost:8000)
+
+> [!NOTE]
+> On the first run, the system will automatically download the **ESM-2 (650M)** model weights (~2.5GB) from Meta's servers. This may take a few minutes depending on your connection.
+
+---
+
+## 🏃‍♂️ Full Pipeline: Training & Preparation
+
+If you want to train the model from scratch or use your own data:
+
+### 1. Model Training
+FoldNet supports various architectures (CNN, BiLSTM, Transformer). Use the main entry point to start training:
+
+```bash
+# Train a Residual CNN (Baseline)
+python run.py --config configs/baseline_cnn.yaml --fold 0
+
+# Train a BiLSTM model
+python run.py --config configs/baseline_bilstm.yaml --fold 0
+```
+Checkpoints will be saved in `results/checkpoints/` and logs in `results/logs/`.
+
+### 2. Preparing Dashboard Data
+The dashboard visualizes specific proteins from the validation set. To update these visualizations after training:
+
+```bash
+# Export results for the dashboard
+python scripts/export_for_dashboard.py --ckpt results/checkpoints/YOUR_CHECKPOINT.ckpt --config configs/baseline_cnn.yaml
+```
+This will generate the necessary JSON files in `data/dashboard/` for the web interface.
+
+### 3. Benchmarking
+To run a full evaluation on the CB513 test set:
+```bash
+python scripts/benchmark.py --ckpt results/checkpoints/YOUR_CHECKPOINT.ckpt
+```
+
+---
 
 ---
 

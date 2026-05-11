@@ -14,3 +14,7 @@ plotly
 pyyaml
 scipy
 h5py
+fair-esm
+fastapi
+uvicorn
+pydantic
