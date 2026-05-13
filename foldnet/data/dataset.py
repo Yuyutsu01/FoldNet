@@ -56,6 +56,7 @@ class ProteinDataset(Dataset):
             'contact_map': contact_map,  # (L, L)
             'seq_len':     L,
             'protein_id':  pid,
+            'sequence':    row['sequence']
         }
 
 
@@ -85,6 +86,7 @@ def collate_fn(batch):
         'contact_map': contact_map,  # (B, L_max, L_max)
         'mask':        mask,         # (B, L_max) True=padding
         'protein_ids': protein_ids,  # (B,) list of strings
+        'sequences':   [b['sequence'] for b in batch],
     }
 
 

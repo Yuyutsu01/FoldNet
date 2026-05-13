@@ -31,6 +31,7 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
     contact_true_list = []
     seq_lens = []
     protein_ids_list = []
+    sequences_list = []
     
     if device is None:
         device = next(model.parameters()).device
@@ -42,6 +43,7 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
             contact_map = batch['contact_map'].to(device)
             mask = batch.get('mask', None)
             batch_pids = batch.get('protein_ids', [f"protein_{i}" for i in range(features.size(0))])
+            batch_seqs = batch.get('sequences', [""] * features.size(0))
             
             if mask is not None:
                 mask = mask.to(device)
@@ -52,8 +54,6 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
             ss_preds = torch.argmax(ss_logits, dim=-1)
             
             # Convert contact logits to probabilities if BCEWithLogitsLoss was used
-            # We see in foldnet.py it uses BCEWithLogitsLoss, meaning the output is logits
-            # so we apply sigmoid to get probabilities.
             contact_probs = torch.sigmoid(contact_probs)
             
             batch_size = features.size(0)
@@ -68,6 +68,7 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
                     
                 seq_lens.append(seq_len)
                 protein_ids_list.append(batch_pids[i])
+                sequences_list.append(batch_seqs[i])
                 
                 # Extract valid portions
                 ss_p = ss_preds[i, valid_mask].cpu().numpy()
@@ -82,4 +83,4 @@ def predict(model: FoldNet, dataloader: torch.utils.data.DataLoader, device: str
                 contact_probs_list.append(c_p)
                 contact_true_list.append(c_t)
                 
-    return ss_pred_list, ss_true_list, contact_probs_list, contact_true_list, seq_lens, protein_ids_list
+    return ss_pred_list, ss_true_list, contact_probs_list, contact_true_list, seq_lens, protein_ids_list, sequences_list

@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FoldNet Dashboard</title>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome 6 -->
@@ -16,211 +15,280 @@
 
     <style>
         :root {
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #6c757d;
-            --border-color: #dee2e6;
-            --primary-accent: #2c7da0;
-            --ss-h: #e63946; /* Helix: Red */
-            --ss-e: #f4a261; /* Sheet: Orange-Yellow */
-            --ss-c: #a8dadc; /* Coil: Light Blue-Grey */
-            --transition-speed: 0.3s;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border-color: rgba(255,255,255,0.1);
+            --bg-color: #020617; /* Deep Navy Black */
+            --panel-bg: rgba(15, 23, 42, 0.6);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #38bdf8; /* Sky 400 */
+            --accent-secondary: #818cf8; /* Indigo 400 */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8; /* Base muted */
+            --text-light: #e2e8f0; /* Light slate for descriptions */
+            --ss-h: #f43f5e; /* Helix: Rose */
+            --ss-e: #fbbf24; /* Sheet: Amber */
+            --ss-c: #38bdf8; /* Coil: Sky */
+            --glow-primary: 0 0 20px rgba(56, 189, 248, 0.3);
+            --glow-secondary: 0 0 20px rgba(129, 140, 248, 0.3);
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            transition: background-color var(--transition-speed), color var(--transition-speed);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(129, 140, 248, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in { animation: fadeIn 0.4s ease forwards; }
-
-        /* Skeleton Loading */
-        .skeleton {
-            background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: 4px;
-        }
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+        h1, h2, h3, h4, .outfit {
+            font-family: 'Outfit', sans-serif;
         }
 
-        /* Theme Toggle Button */
-        .theme-toggle {
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            transition: all 0.3s;
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .theme-toggle:hover { background: rgba(255,255,255,0.2); }
 
-        /* Hero Header */
+        .glass-panel:hover {
+            transform: translateY(-6px);
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.1);
+        }
+
+        /* Premium Hero */
         .hero {
-            background: linear-gradient(135deg, #1a4f66 0%, var(--primary-accent) 100%);
-            color: white;
-            padding: 3rem 0;
-            margin-bottom: 2rem;
             position: relative;
+            padding: 100px 0;
+            background: #020617;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 60px;
             overflow: hidden;
         }
 
-        .glass-title-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 1.5rem 3rem;
-            display: inline-block;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        .hero-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.4;
+            filter: saturate(1.2) brightness(0.8);
         }
 
-        .foldnet-title {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .foldnet-logo { height: 70px; }
-
-        /* Cards */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-main);
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-        .card-header {
-            background-color: transparent;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        /* Metric Cards */
-        .metric-card { border-left: 4px solid var(--primary-accent); }
-        .metric-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        /* Nav Tabs */
-        .nav-tabs .nav-link { color: var(--text-muted); }
-        .nav-tabs .nav-link.active {
-            color: var(--primary-accent);
-            background: none;
-            border-bottom: 3px solid var(--primary-accent);
-        }
-
-        /* Secondary Structure Bars */
-        .ss-bar {
-            height: 30px;
-            display: flex;
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .ss-item {
             height: 100%;
-            flex-grow: 1;
+            background: radial-gradient(circle at 50% 50%, rgba(2, 6, 23, 0.4) 0%, rgba(2, 6, 23, 0.9) 100%);
+            z-index: 1;
         }
 
-        .ss-H {
-            background-color: var(--ss-h);
+        .hero .container {
+            position: relative;
+            z-index: 2;
         }
 
-        .ss-E {
-            background-color: var(--ss-e);
-        }
-
-        .ss-C {
-            background-color: var(--ss-c);
-        }
-
-        .ss-legend {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 15px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .legend-box {
-            width: 16px;
-            height: 16px;
+        .hero-logo-container {
+            position: relative;
             display: inline-block;
-            border-radius: 3px;
-            vertical-align: text-top;
         }
 
-        /* Heatmaps */
-        .heatmap-container {
-            width: 100%;
-            height: 450px;
+        .hero-logo-container::after {
+            content: '';
+            position: absolute;
+            inset: -15px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 50%;
+            filter: blur(30px);
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .foldnet-logo {
+            height: 90px;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.5));
+        }
+
+        .hero-title {
+            font-size: 4.2rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 1rem;
+        }
+
+        /* Nav Tabs Customisation */
+        .nav-tabs {
+            border-bottom: none;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .nav-link {
+            border: none !important;
+            border-radius: 14px !important;
+            padding: 12px 24px !important;
+            color: var(--text-muted) !important;
+            font-weight: 600;
+            transition: all 0.3s ease !important;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #fff !important;
+        }
+
+        .nav-link.active {
+            background: rgba(56, 189, 248, 0.15) !important;
+            color: var(--accent-primary) !important;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2) !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        }
+
+        /* Input Customisation */
+        .form-control, .form-select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            color: #fff;
+            padding: 14px 18px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(15, 23, 42, 1);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+            color: #fff;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
         }
 
         /* Buttons */
-        .btn-primary {
-            background-color: var(--primary-accent);
-            border-color: var(--primary-accent);
+        .btn-premium {
+            background: linear-gradient(135deg, var(--accent-primary), #0ea5e9);
+            border: none;
+            color: #000;
+            font-weight: 800;
+            border-radius: 16px;
+            padding: 16px 32px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 25px -6px rgba(56, 189, 248, 0.5);
         }
 
-        .btn-primary:hover {
-            background-color: #1a4f66;
-            border-color: #1a4f66;
+        .btn-premium:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px -8px rgba(56, 189, 248, 0.6), 0 0 15px rgba(56, 189, 248, 0.3);
+            color: #000;
         }
 
-        /* Utilities */
-        .sticky-sidebar {
-            top: 20px;
-            z-index: 1020;
+        .btn-outline-premium {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            border-radius: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
+        .btn-outline-premium:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        /* Metrics */
+        .metric-card {
+            padding: 28px;
+            text-align: center;
+            border: 1px solid var(--panel-border);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 2.6rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Secondary Structure */
+        .ss-bar {
+            height: 42px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            display: flex;
+        }
+
+        .ss-H { background: var(--ss-h); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+        .ss-E { background: var(--ss-e); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+        .ss-C { background: var(--ss-c); box-shadow: 0 0 10px rgba(14, 165, 233, 0.2); }
+
+        .legend-box {
+            width: 14px;
+            height: 14px;
             border-radius: 4px;
-            height: 30px;
-            width: 100%;
+            display: inline-block;
         }
 
-        @keyframes skeleton-loading {
-            0% {
-                background-position: 200% 0;
-            }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
-            100% {
-                background-position: -200% 0;
-            }
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        
+        .tab-pane { padding-top: 2rem; }
+
+        .tag {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
         }
     </style>
 </head>
@@ -229,157 +297,141 @@
 
     <!-- Hero Header -->
     <div class="hero">
+        <video autoplay muted loop playsinline class="hero-video">
+            <source src="/static/Prompt_to_Generate_a_Backgroun.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
         <div class="container text-center">
-            <div class="glass-title-container">
-                <h1 class="foldnet-title">
-                    <img src="/static/logo.png" alt="FoldNet Logo" class="foldnet-logo"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                    <i class="fa-solid fa-dna" style="display: none;"></i>
-                    FoldNet
-                </h1>
-                <p class="lead mb-0 mt-3 fw-medium" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Deep Learning for
-                    Protein Secondary Structure and Contact Map Prediction</p>
-                <div class="mt-4">
-                    <button id="theme-toggle" class="theme-toggle">
-                        <i class="fa-solid fa-moon me-2"></i> <span>Dark Mode</span>
-                    </button>
-                </div>
+            <div class="hero-logo-container mb-4">
+                <img src="/static/logo.png" alt="FoldNet Logo" class="foldnet-logo animate-float">
+            </div>
+            <h1 class="hero-title">FoldNet <span style="color: var(--accent-primary);">AI</span></h1>
+            <p class="mx-auto" style="max-width: 700px; font-weight: 500; color: #cbd5e1; font-size: 1.1rem; letter-spacing: 0.5px;">
+                A multi-task deep learning framework for protein 2D structure prediction.
+            </p>
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <!-- Tags removed as requested -->
             </div>
         </div>
     </div>
 
     <div class="container-fluid px-4 px-lg-5">
         <!-- Tabs Nav -->
-        <ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="predictor-tab" data-bs-toggle="tab" data-bs-target="#predictor"
-                    type="button" role="tab"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Predictor</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="testset-tab" data-bs-toggle="tab" data-bs-target="#testset" type="button"
-                    role="tab"><i class="fa-solid fa-database me-2"></i>Test Set Visualisation</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="benchmark-tab" data-bs-toggle="tab" data-bs-target="#benchmark"
-                    type="button" role="tab"><i class="fa-solid fa-chart-line me-2"></i>Benchmarks</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button"
-                    role="tab"><i class="fa-solid fa-circle-info me-2"></i>Model Info</button>
-            </li>
-        </ul>
+        <div class="row mb-5">
+            <div class="col-12">
+                <ul class="nav nav-tabs justify-content-center" id="mainTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="predict-tab" data-bs-toggle="tab" data-bs-target="#predict" type="button" role="tab">
+                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i>PREDICTOR
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="testset-tab" data-bs-toggle="tab" data-bs-target="#testset" type="button" role="tab">
+                            <i class="fa-solid fa-vial me-2"></i>ARCHIVES
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="benchmark-tab" data-bs-toggle="tab" data-bs-target="#benchmark" type="button" role="tab">
+                            <i class="fa-solid fa-chart-line me-2"></i>BENCHMARKS
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                            <i class="fa-solid fa-circle-info me-2"></i>ARCHITECTURE
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
         <!-- Tabs Content -->
         <div class="tab-content" id="myTabContent">
 
             <!-- Predictor Tab -->
-            <div class="tab-pane fade show active" id="predictor" role="tabpanel">
+            <div class="tab-pane fade show active" id="predict" role="tabpanel">
                 <div class="row">
                     <div class="col-lg-4 mb-4">
-                        <div class="card p-4 shadow-sm h-100">
-                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-keyboard text-primary me-2"></i>Sequence
-                                Input</h5>
-                            <div class="mb-3">
-                                <button class="btn btn-sm btn-outline-secondary me-2 mb-2"
-                                    onclick="loadDemo('1akeA')">Load 1akeA</button>
-                                <button class="btn btn-sm btn-outline-secondary mb-2" onclick="loadDemo('2rn2')">Load
-                                    2rn2</button>
+                        <div class="glass-panel p-4 h-100">
+                            <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-keyboard text-info me-2"></i>Sequence Input</h5>
+                            <div class="mb-3 d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-premium px-3" onclick="loadDemo('1akeA')">1akeA</button>
+                                <button class="btn btn-sm btn-outline-premium px-3" onclick="loadDemo('2rn2')">2rn2</button>
                             </div>
-                            <textarea id="seq-input" class="form-control mb-2" rows="6"
-                                placeholder="Enter amino acid sequence (min 30 residues)..."></textarea>
-                            <div id="val-indicator" class="small mb-3">
-                                <i class="fa-solid fa-circle-info me-1"></i> <span id="val-text">Ready for input (Min 30 chars)</span>
+                            <textarea id="seq-input" class="form-control mb-3" rows="8"
+                                placeholder="Enter amino acid sequence..."></textarea>
+                            <div id="val-indicator" class="small mb-4 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-circle-info" style="color: #cbd5e1;"></i> <span id="val-text" style="color: #cbd5e1;">Min 30 residues</span>
                             </div>
-                            <div id="seq-warning" class="text-danger small mb-3 d-none"><i
-                                    class="fa-solid fa-triangle-exclamation"></i> Sequence must be at least 30 valid
-                                standard amino acids.</div>
-                            <button id="btn-predict" class="btn btn-primary w-100 py-2 fw-bold">Predict
-                                Structure</button>
+                            <button id="btn-predict" class="btn-premium w-100 py-3">GENERATE PREDICTION</button>
                         </div>
                     </div>
 
                     <div class="col-lg-8">
                         <!-- Loading State -->
-                        <div id="predict-loading"
-                            class="card p-5 text-center d-none shadow-sm h-100 justify-content-center">
-                            <div>
-                                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"
-                                    role="status"></div>
-                                <h5 id="predict-status-title">Extracting ESM-2 Features & Running FoldNet...</h5>
-                                <div class="progress mx-auto mt-4" style="width: 80%; height: 10px;">
-                                    <div id="predict-progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
-                                </div>
-                                <p class="text-muted mt-3" id="predict-status-desc">Step 1: Calculating ESM-2 Language Embeddings</p>
+                        <div id="predict-loading" class="glass-panel p-5 text-center d-none h-100 d-flex flex-column justify-content-center border-info border-opacity-25">
+                            <div class="spinner-border text-info mb-4" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+                            <h4 id="predict-status-title" class="fw-bold text-white mb-2">Analyzing Sequence...</h4>
+                            <p class="mb-4" id="predict-status-desc" style="color: #cbd5e1;">Step 1: Calculating ESM-2 Language Embeddings</p>
+                            <div class="progress mx-auto bg-white bg-opacity-5" style="width: 70%; height: 6px; border-radius: 10px;">
+                                <div id="predict-progress" class="progress-bar" role="progressbar" style="width: 0%; background: var(--accent-primary); box-shadow: var(--glow-cyan);"></div>
                             </div>
                         </div>
 
                         <!-- Results State -->
                         <div id="predict-results" class="d-none">
-                            <!-- Metric Cards for Predictor -->
-                            <div class="row mb-4">
+                            <!-- Metric Cards -->
+                            <div class="row g-4 mb-4 align-items-stretch">
                                 <div class="col-md-4">
-                                    <div class="card text-center shadow-sm metric-card h-100 p-3" style="border-left-color: #3498db;">
-                                        <h6 class="text-muted text-uppercase small fw-bold">Sequence Status</h6>
-                                        <div class="metric-value" style="font-size: 1.2rem; padding-top: 10px;" id="pred-metric-status">New Sequence</div>
+                                    <div class="glass-panel metric-card h-100 border-top border-4 border-info d-flex flex-column justify-content-center">
+                                        <div class="metric-label">Prediction Status</div>
+                                        <div class="metric-value outfit" style="font-size: 1.25rem;" id="pred-metric-status">New Sequence</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
-                                        <h6 class="text-muted text-uppercase small fw-bold">Sequence Length</h6>
-                                        <div class="metric-value" id="pred-metric-len">-</div>
+                                    <div class="glass-panel metric-card h-100 border-top border-4 border-purple d-flex flex-column justify-content-center" style="border-color: var(--accent-secondary) !important;">
+                                        <div class="metric-label">Sequence Length</div>
+                                        <div class="metric-value outfit" id="pred-metric-len">-</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
-                                        <h6 class="text-muted text-uppercase small fw-bold">Confidence</h6>
-                                        <div class="metric-value" id="pred-metric-conf">High</div>
+                                    <div class="glass-panel metric-card h-100 border-top border-4 border-success d-flex flex-column justify-content-center">
+                                        <div class="metric-label">Inference Logic</div>
+                                        <div class="metric-value outfit" id="pred-metric-conf" style="font-size: 1.25rem;">Complete</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0 fw-bold"><i
-                                            class="fa-solid fa-align-left text-primary me-2"></i>Predicted Secondary
-                                        Structure</h5>
+                            <div class="glass-panel p-4 mb-4">
+                                <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-align-left text-info me-2"></i>Secondary Structure</h5>
+                                <div class="d-flex gap-4 mb-4 small fw-bold text-uppercase letter-spacing-1 text-white">
+                                    <div class="d-flex align-items-center gap-2"><div class="legend-box ss-H"></div> Helix</div>
+                                    <div class="d-flex align-items-center gap-2"><div class="legend-box ss-E"></div> Sheet</div>
+                                    <div class="d-flex align-items-center gap-2"><div class="legend-box ss-C"></div> Coil</div>
                                 </div>
-                                <div class="card-body p-4">
-                                    <div class="ss-legend justify-content-center">
-                                        <div><span class="legend-box ss-H"></span> Helix</div>
-                                        <div><span class="legend-box ss-E"></span> Sheet</div>
-                                        <div><span class="legend-box ss-C"></span> Coil</div>
-                                    </div>
-                                    <div id="predict-ss-bar" class="ss-bar mb-4"></div>
-
-                                    <h6 class="text-muted small text-uppercase fw-bold">Raw Sequence Output</h6>
-                                    <div class="bg-light p-3 rounded font-monospace small text-break border position-relative"
-                                        style="max-height: 150px; overflow-y: auto;" id="predict-ss-text"></div>
-                                </div>
+                                <div id="predict-ss-bar" class="ss-bar mb-4"></div>
+                                <div class="bg-black bg-opacity-30 p-4 rounded-4 font-monospace small text-break border border-white border-opacity-5 text-white"
+                                    style="max-height: 120px; overflow-y: auto;" id="predict-ss-text"></div>
                             </div>
 
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0 fw-bold"><i
-                                            class="fa-solid fa-border-all text-primary me-2"></i>Predicted Contact Map
-                                    </h5>
+                            <div class="glass-panel p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-border-all text-info me-2"></i>Contact Map</h5>
                                     <select id="map-color-picker" class="form-select form-select-sm w-auto">
-                                        <option value="Blues" selected>Scale: Blues (Light)</option>
-                                        <option value="Viridis">Scale: Viridis (Dark)</option>
-                                        <option value="Magma">Scale: Magma</option>
-                                        <option value="Plasma">Scale: Plasma</option>
+                                        <option value="Blues" selected>Sky Blue</option>
+                                        <option value="Viridis">Nature (Viridis)</option>
+                                        <option value="Magma">Energy (Magma)</option>
+                                        <option value="Plasma">Modern (Plasma)</option>
                                     </select>
                                 </div>
-                                <div class="card-body">
-                                    <div id="predict-contact-map" class="heatmap-container"></div>
-                                </div>
+                                <div id="predict-contact-map" class="heatmap-container"></div>
                             </div>
                         </div>
 
                         <!-- Empty State -->
-                        <div id="predict-empty"
-                            class="card p-5 text-center shadow-sm h-100 justify-content-center bg-light border-0">
-                            <h4 class="text-muted"><i class="fa-solid fa-arrow-left me-2"></i>Enter a sequence to begin
-                            </h4>
+                        <div id="predict-empty" class="glass-panel p-5 text-center h-100 d-flex flex-column justify-content-center border-dashed">
+                            <div class="mb-4"><i class="fa-solid fa-dna text-white opacity-10" style="font-size: 4rem;"></i></div>
+                            <h4 class="text-white fw-bold mb-2">Deep Learning Pipeline Ready</h4>
+                            <p class="small" style="color: #cbd5e1;">Enter a protein sequence to generate architectural predictions.</p>
                         </div>
                     </div>
                 </div>
@@ -388,126 +440,85 @@
             <!-- Test Set Tab -->
             <div class="tab-pane fade" id="testset" role="tabpanel">
                 <div class="row">
-                    <!-- Sticky Sidebar -->
                     <div class="col-lg-3 mb-4">
-                        <div class="sticky-top sticky-sidebar">
-                            <div class="card shadow-sm p-4">
-                                <h5 class="fw-bold mb-3"><i class="fa-solid fa-filter text-primary me-2"></i>Protein
-                                    Selection</h5>
-                                <label class="form-label text-muted small text-uppercase fw-bold">Select from CB513 /
-                                    PDB</label>
-                                <select id="protein-select" class="form-select mb-4">
-                                    <option value="">Loading proteins...</option>
-                                </select>
-
-                                <div class="p-3 bg-light rounded border text-center">
-                                    <h6 class="mb-1 text-muted">Sequence Length</h6>
-                                    <h3 class="mb-0 fw-bold text-primary" id="prot-len-badge">-</h3>
+                        <div class="sticky-top" style="top: 2rem;">
+                            <div class="glass-panel p-4">
+                                <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-filter text-info me-2"></i>Selection</h5>
+                                <label class="form-label small text-uppercase fw-bold letter-spacing-1" style="color: #cbd5e1;">CB513 / PDB Archive</label>
+                                <select id="protein-select" class="form-select mb-4"></select>
+                                <div class="p-3 bg-black bg-opacity-30 rounded-4 border border-white border-opacity-5 text-center">
+                                    <div class="text-white small text-uppercase fw-bold mb-2 letter-spacing-1 opacity-75">Total Residues</div>
+                                    <h2 class="mb-0 fw-black text-info outfit display-6" id="prot-len-badge">-</h2>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Main Visualisation Area -->
                     <div class="col-lg-9">
                         <div id="testset-results" class="d-none">
+                            <div class="row g-4 mb-4 align-items-stretch">
+                                <div class="col-md-3">
+                                     <div class="glass-panel metric-card h-100 border-top border-4 border-info d-flex flex-column justify-content-center">
+                                         <div class="metric-label text-info">Q3 Accuracy</div>
+                                         <div class="metric-value outfit" id="ts-metric-q3">-</div>
+                                     </div>
+                                 </div>
+                                <div class="col-md-3">
+                                     <div class="glass-panel metric-card h-100 border-top border-4 border-primary d-flex flex-column justify-content-center" style="border-color: var(--accent-secondary) !important;">
+                                         <div class="metric-label text-purple" style="color: var(--accent-secondary) !important;">MCC</div>
+                                         <div class="metric-value outfit" id="ts-metric-mcc">-</div>
+                                     </div>
+                                 </div>
+                                <div class="col-md-3">
+                                     <div class="glass-panel metric-card h-100 border-top border-4 border-warning d-flex flex-column justify-content-center">
+                                         <div class="metric-label text-warning">Prec@L</div>
+                                         <div class="metric-value outfit" id="ts-metric-pl">-</div>
+                                     </div>
+                                 </div>
+                                <div class="col-md-3">
+                                     <div class="glass-panel metric-card h-100 border-top border-4 border-success d-flex flex-column justify-content-center">
+                                         <div class="metric-label text-success">LR Prec</div>
+                                         <div class="metric-value outfit" id="ts-metric-lr">-</div>
+                                     </div>
+                                 </div>
+                            </div>
 
-                            <!-- Metric Cards -->
-                            <div class="row mb-4">
-                                <div class="col-md-3">
-                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
-                                        <h6 class="text-muted text-uppercase small fw-bold">Q3 Accuracy</h6>
-                                        <div class="metric-value" id="ts-metric-q3">-</div>
+                            <div class="glass-panel p-4 mb-5">
+                                <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-align-left text-info me-2"></i>SS Comparison</h5>
+                                <div class="d-flex flex-column gap-4">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-white opacity-75 small fw-bold text-uppercase">Ground Truth</div>
+                                        <div class="col-md-10"><div id="ts-ss-true" class="ss-bar"></div></div>
                                     </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
-                                        <h6 class="text-muted text-uppercase small fw-bold">MCC</h6>
-                                        <div class="metric-value" id="ts-metric-mcc">-</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
-                                        <h6 class="text-muted text-uppercase small fw-bold">Precision@L</h6>
-                                        <div class="metric-value" id="ts-metric-pl">-</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card text-center shadow-sm metric-card h-100 p-3">
-                                        <h6 class="text-muted text-uppercase small fw-bold">Long-Range Prec</h6>
-                                        <div class="metric-value" id="ts-metric-lr">-</div>
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-info small fw-bold text-uppercase">Prediction</div>
+                                        <div class="col-md-10"><div id="ts-ss-pred" class="ss-bar"></div></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- SS Comparison -->
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0 fw-bold"><i
-                                            class="fa-solid fa-align-left text-primary me-2"></i>Secondary Structure
-                                        Comparison</h5>
-                                </div>
-                                <div class="card-body p-4">
-                                    <div class="ss-legend justify-content-center">
-                                        <div><span class="legend-box ss-H"></span> Helix</div>
-                                        <div><span class="legend-box ss-E"></span> Sheet</div>
-                                        <div><span class="legend-box ss-C"></span> Coil</div>
+                            <div class="glass-panel p-4">
+                                <h5 class="fw-bold mb-4 text-white"><i class="fa-solid fa-border-all text-info me-2"></i>Contact Comparison</h5>
+                                <div class="row g-3 text-center">
+                                    <div class="col-md-4">
+                                        <div class="text-white small fw-bold mb-3 text-uppercase letter-spacing-1">PDB Archive Truth</div>
+                                        <div id="ts-contact-true" class="heatmap-container bg-black bg-opacity-20 rounded-3 border border-white border-opacity-5" style="height: 320px;"></div>
                                     </div>
-
-                                    <div class="row align-items-center mb-3 mt-4">
-                                        <div class="col-md-2 text-end text-muted fw-bold">Ground Truth</div>
-                                        <div class="col-md-10">
-                                            <div id="ts-ss-true" class="ss-bar"></div>
-                                        </div>
+                                    <div class="col-md-4">
+                                        <div class="text-info small fw-bold mb-3 text-uppercase letter-spacing-1">Neural Prediction</div>
+                                        <div id="ts-contact-pred" class="heatmap-container bg-black bg-opacity-20 rounded-3 border border-white border-opacity-5" style="height: 320px;"></div>
                                     </div>
-
-                                    <div class="row align-items-center mb-2">
-                                        <div class="col-md-2 text-end text-primary fw-bold">Prediction</div>
-                                        <div class="col-md-10">
-                                            <div id="ts-ss-pred" class="ss-bar"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Contact Map Comparison -->
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0 fw-bold"><i
-                                            class="fa-solid fa-border-all text-primary me-2"></i>Contact Map Comparison
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <h6 class="text-center text-muted fw-bold mb-0">Ground Truth (PDB)</h6>
-                                            <p class="text-center small text-muted">Binary contact map < 8Å</p>
-                                                    <div id="ts-contact-true" class="heatmap-container"
-                                                        style="height: 350px;"></div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <h6 class="text-center text-primary fw-bold mb-0">Predicted Probabilities
-                                            </h6>
-                                            <p class="text-center small text-muted">Sigmoid output</p>
-                                            <div id="ts-contact-pred" class="heatmap-container" style="height: 350px;">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <h6 class="text-center text-danger fw-bold mb-0">Difference Map (Error)</h6>
-                                            <p class="text-center small text-muted">True - Predicted</p>
-                                            <div id="ts-contact-diff" class="heatmap-container" style="height: 350px;">
-                                            </div>
-                                        </div>
+                                    <div class="col-md-4">
+                                        <div class="text-rose small fw-bold mb-3 text-uppercase letter-spacing-1" style="color: #fb7185;">Structural Delta</div>
+                                        <div id="ts-contact-diff" class="heatmap-container bg-black bg-opacity-20 rounded-3 border border-white border-opacity-5" style="height: 320px;"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Empty State -->
-                        <div id="testset-empty"
-                            class="card p-5 text-center shadow-sm h-100 justify-content-center bg-light border-0">
-                            <h4 class="text-muted"><i class="fa-solid fa-arrow-left me-2"></i>Select a protein to
-                                visualize</h4>
+                        <div id="testset-empty" class="glass-panel p-5 text-center h-100 d-flex flex-column justify-content-center border-dashed">
+                            <div class="mb-4"><i class="fa-solid fa-folder-open text-white opacity-10" style="font-size: 4rem;"></i></div>
+                            <h4 class="text-white fw-bold mb-2">Archive Explorer</h4>
+                            <p class="small" style="color: #cbd5e1;">Select a protein from the sidebar to analyze archived structure truth.</p>
                         </div>
                     </div>
                 </div>
@@ -516,58 +527,25 @@
             <!-- Benchmark Tab -->
             <div class="tab-pane fade" id="benchmark" role="tabpanel">
                 <div class="row">
-                    <div class="col-lg-8 mx-auto">
-                        <div class="card shadow-sm p-4 mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <h4 class="fw-bold mb-1">CB513 Test Set Benchmark</h4>
-                                    <p class="text-muted mb-0">Validation metrics computed across 90 proteins.</p>
-                                </div>
-                                <button class="btn btn-outline-primary" onclick="exportTableToCSV()"><i
-                                        class="fa-solid fa-download me-2"></i>Export CSV</button>
+                    <div class="col-lg-10 mx-auto">
+                        <div class="glass-panel p-5">
+                            <div class="d-flex justify-content-between align-items-center mb-5">
+                                <div><h3 class="fw-bold text-white mb-1">Architecture Benchmarks</h3><p style="color: #cbd5e1;">CB513 Cross-Validation Performance</p></div>
+                                <button class="btn btn-outline-premium" onclick="exportTableToCSV()">EXPORT DATA</button>
                             </div>
-
-                            <table class="table table-hover align-middle border" id="benchmark-table">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Architecture</th>
-                                        <th class="text-center">Q3 (%)</th>
-                                        <th class="text-center">MCC (Macro)</th>
-                                        <th class="text-center">Precision@L</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><i class="fa-solid fa-microchip me-2 text-muted"></i><strong>CNN (1D
-                                                Residual)</strong></td>
-                                        <td class="text-center">83.66</td>
-                                        <td class="text-center">0.7448</td>
-                                        <td class="text-center">0.0258</td>
-                                    </tr>
-                                    <tr class="table-primary border-primary">
-                                        <td><i class="fa-solid fa-microchip me-2 text-primary"></i><strong>BiLSTM (Best
-                                                Contacts)</strong></td>
-                                        <td class="text-center fw-bold">82.55</td>
-                                        <td class="text-center">0.7270</td>
-                                        <td class="text-center fw-bold">0.1022</td>
-                                    </tr>
-                                    <tr>
-                                        <td><i
-                                                class="fa-solid fa-microchip me-2 text-muted"></i><strong>Transformer</strong>
-                                        </td>
-                                        <td class="text-center">82.93</td>
-                                        <td class="text-center">0.7326</td>
-                                        <td class="text-center">0.0226</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <p class="small text-muted text-end mt-2">* Evaluated using pre-computed ESM-2 1280-dim
-                                representations.</p>
-
-                            <hr class="my-4">
-
-                            <h5 class="fw-bold text-center mb-4">Visual Comparison</h5>
-                            <div id="benchmark-chart" style="height: 400px; width: 100%;"></div>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover border-0 bg-transparent mb-5" id="benchmark-table">
+                                    <thead class="text-info small text-uppercase opacity-75">
+                                        <tr><th>Architecture</th><th class="text-center">Q3 Accuracy</th><th class="text-center">MCC Macro</th><th class="text-center">Precision@L</th></tr>
+                                    </thead>
+                                    <tbody class="border-0">
+                                        <tr class="border-bottom border-white border-opacity-5"><td>CNN (Residual)</td><td class="text-center">83.66%</td><td class="text-center">0.7448</td><td class="text-center">0.0258</td></tr>
+                                        <tr class="border-bottom border-white border-opacity-5 bg-white bg-opacity-5"><td class="text-primary fw-bold" style="color: var(--accent-primary) !important;">BiLSTM Fusion (Best)</td><td class="text-center text-primary fw-bold" style="color: var(--accent-primary) !important;">82.55%</td><td class="text-center text-primary" style="color: var(--accent-primary) !important;">0.7270</td><td class="text-center text-primary fw-bold" style="color: var(--accent-primary) !important;">0.1022</td></tr>
+                                        <tr><td>Transformer</td><td class="text-center">82.93%</td><td class="text-center">0.7326</td><td class="text-center">0.0226</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="benchmark-chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
@@ -576,78 +554,70 @@
             <!-- Info Tab -->
             <div class="tab-pane fade" id="info" role="tabpanel">
                 <div class="row">
-                    <div class="col-lg-8 mx-auto">
-                        <div class="card shadow-sm p-4 mb-4">
-                            <h4 class="fw-bold mb-4">FoldNet Architecture</h4>
+                    <div class="col-lg-10 mx-auto">
+                        <div class="glass-panel p-5">
+                            <h3 class="fw-bold text-white mb-5">FoldNet Architecture</h3>
                             
-                            <!-- Custom CSS Architecture Roadmap -->
-                            <div class="d-flex flex-column align-items-center py-5 mb-5 bg-light rounded border position-relative overflow-hidden">
-                                <div style="position: absolute; top: -20px; right: -20px; font-size: 10rem; color: rgba(0,0,0,0.03); transform: rotate(15deg); z-index: 0;"><i class="fa-solid fa-dna"></i></div>
-                                
-                                <div class="p-3 bg-white border rounded shadow-sm mb-3 text-center position-relative" style="width: 280px; z-index: 1;">
-                                    <div class="badge bg-primary position-absolute top-0 start-0 m-2">Step 1</div>
-                                    <i class="fa-solid fa-font text-primary mb-2 d-block" style="font-size: 1.5rem;"></i>
-                                    <strong>Input Sequence</strong><br><span class="small text-muted">Raw Amino Acid String</span>
-                                </div>
-                                
-                                <div class="text-muted my-2"><i class="fa-solid fa-chevron-down"></i></div>
-                                
-                                <div class="p-3 bg-info bg-opacity-10 border border-info rounded shadow-sm mb-3 text-center position-relative" style="width: 280px; z-index: 1;">
-                                    <div class="badge bg-info position-absolute top-0 start-0 m-2">Step 2</div>
-                                    <i class="fa-solid fa-microchip text-info mb-2 d-block" style="font-size: 1.5rem;"></i>
-                                    <strong>ESM-2 Transformer</strong><br><span class="small text-muted">1280-dim Language Embeddings</span>
-                                </div>
-                                
-                                <div class="text-muted my-2"><i class="fa-solid fa-chevron-down"></i></div>
-                                
-                                <div class="p-3 bg-warning bg-opacity-10 border border-warning rounded shadow-sm mb-4 text-center position-relative" style="width: 280px; z-index: 1;">
-                                    <div class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Step 3</div>
-                                    <i class="fa-solid fa-layer-group text-warning mb-2 d-block" style="font-size: 1.5rem;"></i>
-                                    <strong>BiLSTM Encoder</strong><br><span class="small text-muted">Sequential Context Extraction</span>
-                                </div>
-                                
-                                <div class="d-flex justify-content-center gap-5 w-100 mt-2 position-relative" style="z-index: 1;">
-                                    <div class="d-flex flex-column align-items-center">
-                                        <div class="mb-2 text-muted" style="transform: rotate(-30deg)"><i class="fa-solid fa-arrow-down"></i></div>
-                                        <div class="p-3 bg-danger bg-opacity-10 border border-danger rounded shadow-sm text-center" style="width: 240px;">
-                                            <i class="fa-solid fa-chart-bar text-danger mb-2 d-block" style="font-size: 1.2rem;"></i>
-                                            <strong>1D CNN SS-Head</strong><br><span class="small text-muted">Per-residue Classification (H/E/C)</span>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex flex-column align-items-center">
-                                        <div class="mb-2 text-muted" style="transform: rotate(30deg)"><i class="fa-solid fa-arrow-down"></i></div>
-                                        <div class="p-3 bg-success bg-opacity-10 border border-success rounded shadow-sm text-center" style="width: 240px;">
-                                            <i class="fa-solid fa-border-all text-success mb-2 d-block" style="font-size: 1.2rem;"></i>
-                                            <strong>2D ResNet Contact-Head</strong><br><span class="small text-muted">Spatial Residue-Pair Probabilities</span>
-                                        </div>
-                                    </div>
-                                </div>
+                            <!-- Diagram Slide -->
+                            <div class="glass-panel p-4 bg-black bg-opacity-20 border-white border-opacity-5 mb-5 text-center">
+                                <img src="/static/dashboard_mockup.png" alt="Architecture Diagram" class="img-fluid rounded-4 shadow-2xl" style="max-height: 500px; width: auto;">
                             </div>
-                            
-                            <h5 class="fw-bold mt-4">Detailed Specifications</h5>
-                            <div class="row g-4 mt-1">
+
+                            <!-- Detailed Specs Slide -->
+                            <div class="text-center mb-5">
+                                <h4 class="fw-bold text-white mb-2">Detailed Specifications</h4>
+                                <div class="mx-auto bg-info" style="width: 40px; height: 3px; border-radius: 10px;"></div>
+                            </div>
+
+                            <div class="row g-4">
                                 <div class="col-md-6">
-                                    <div class="card h-100 border-0 bg-light p-3">
-                                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-gears me-2 text-primary"></i>Model Components</h6>
-                                        <ul class="list-unstyled mb-0">
-                                            <li class="mb-2 d-flex justify-content-between"><span>ESM-2 Backbone</span><span class="badge bg-white text-dark border">650M Params</span></li>
-                                            <li class="mb-2 d-flex justify-content-between"><span>BiLSTM Layers</span><span class="badge bg-white text-dark border">2 Layers</span></li>
-                                            <li class="mb-2 d-flex justify-content-between"><span>Hidden Units</span><span class="badge bg-white text-dark border">512 (Bidirectional)</span></li>
-                                            <li class="mb-2 d-flex justify-content-between"><span>Activation</span><span class="badge bg-white text-dark border">ReLU / Sigmoid</span></li>
-                                            <li class="mb-0 d-flex justify-content-between"><span>Total Parameters</span><span class="badge bg-white text-dark border">~675M</span></li>
-                                        </ul>
+                                    <div class="glass-panel p-4 h-100 bg-white bg-opacity-5 border-info border-opacity-10">
+                                        <div class="d-flex align-items-center gap-3 mb-4">
+                                            <div class="p-3 bg-primary bg-opacity-20 rounded-3 text-primary"><i class="fa-solid fa-layer-group"></i></div>
+                                            <h5 class="mb-0 fw-bold text-white">Model Components</h5>
+                                        </div>
+                                        <div class="d-flex flex-column gap-3">
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">ESM-2 Backbone</span><span class="badge bg-black bg-opacity-30 text-white">650M Params</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">BiLSTM Layers</span><span class="badge bg-black bg-opacity-30 text-white">2 Layers</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">Hidden Units</span><span class="badge bg-black bg-opacity-30 text-white">512 (Bidirectional)</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">Activation</span><span class="badge bg-black bg-opacity-30 text-white">ReLU / Sigmoid</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted small">Total Parameters</span><span class="text-info fw-bold">~675M</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="card h-100 border-0 bg-light p-3">
-                                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-vial me-2 text-primary"></i>Training Specs</h6>
-                                        <ul class="list-unstyled mb-0">
-                                            <li class="mb-2 d-flex justify-content-between"><span>Optimizer</span><span class="badge bg-white text-dark border">AdamW</span></li>
-                                            <li class="mb-2 d-flex justify-content-between"><span>Learning Rate</span><span class="badge bg-white text-dark border">1e-4</span></li>
-                                            <li class="mb-2 d-flex justify-content-between"><span>Precision</span><span class="badge bg-white text-dark border">FP16-Mixed</span></li>
-                                            <li class="mb-2 d-flex justify-content-between"><span>Contact Weight</span><span class="badge bg-white text-dark border">λ = 0.01</span></li>
-                                            <li class="mb-0 d-flex justify-content-between"><span>Dataset Size</span><span class="badge bg-white text-dark border">CB513 / PDB Split</span></li>
-                                        </ul>
+                                    <div class="glass-panel p-4 h-100 bg-white bg-opacity-5 border-success border-opacity-10">
+                                        <div class="d-flex align-items-center gap-3 mb-4">
+                                            <div class="p-3 bg-success bg-opacity-20 rounded-3 text-success"><i class="fa-solid fa-vial-circle-check"></i></div>
+                                            <h5 class="mb-0 fw-bold text-white">Training Specs</h5>
+                                        </div>
+                                        <div class="d-flex flex-column gap-3">
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">Optimizer</span><span class="badge bg-black bg-opacity-30 text-white">AdamW</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">Learning Rate</span><span class="badge bg-black bg-opacity-30 text-white">1e-4</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">Precision</span><span class="badge bg-black bg-opacity-30 text-white">FP16-Mixed</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between border-bottom border-white border-opacity-5 pb-2">
+                                                <span class="text-muted small">Contact Weight</span><span class="badge bg-black bg-opacity-30 text-white">&lambda; = 0.01</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted small">Dataset Size</span><span class="text-success fw-bold">CB513 / PDB Split</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -655,20 +625,9 @@
                     </div>
                 </div>
             </div>
-
-        </div>
-    </div>
-
-    <!-- Bootstrap Toasts -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="action-toast" class="toast align-items-center text-bg-success border-0" role="alert"
-            aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body" id="action-toast-body">
-                    Action completed successfully.
+                        </div>
+                    </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                    aria-label="Close"></button>
             </div>
         </div>
     </div>
@@ -676,5 +635,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/app.js"></script>
 </body>
-
-</html>
+</html>l>

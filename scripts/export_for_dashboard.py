@@ -41,7 +41,7 @@ def main():
     model = load_model(args.ckpt)
     
     print("Running inference...")
-    ss_p_list, ss_t_list, c_p_list, c_t_list, seq_lens, prot_ids = predict(model, val_loader)
+    ss_p_list, ss_t_list, c_p_list, c_t_list, seq_lens, prot_ids, seqs = predict(model, val_loader)
     
     os.makedirs(os.path.join(args.out_dir, "proteins"), exist_ok=True)
     
@@ -71,6 +71,7 @@ def main():
         
         protein_data = {
             "protein_id": pid,
+            "sequence": seqs[i],
             "length": L,
             "metrics": {
                 "Q3": float(q3),
