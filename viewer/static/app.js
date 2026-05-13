@@ -40,7 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const toast = new bootstrap.Toast(toastEl, {delay: 3000});
         toast.show();
     }
-    
+
+    // ── Legacy SS bar (kept for test-set comparison bars) ──
     function drawSSBar(elementId, ssArray) {
         const container = document.getElementById(elementId);
         container.innerHTML = "";
@@ -62,29 +63,65 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     }
-    
+
+    // ── Enhanced heatmap with better colorscale options ──
     function drawHeatmap(elementId, zMatrix, title, colorscale, zmin=null, zmax=null) {
         const isDark = body.getAttribute("data-theme") === "dark";
+        const textColor = isDark ? '#9ca3af' : '#4b5563';
         const data = [{
             z: zMatrix,
             type: 'heatmap',
             colorscale: colorscale,
             showscale: true,
             colorbar: { 
-                thickness: 15, len: 0.8, 
-                tickfont: { color: isDark ? "#94a3b8" : "#666" }
+                thickness: 14, len: 0.85, 
+                tickfont: { color: textColor, family: "'Inter', sans-serif", size: 10 },
+                outlinewidth: 0
             }
         }];
         if (zmin !== null) data[0].zmin = zmin;
         if (zmax !== null) data[0].zmax = zmax;
         const layout = {
-            margin: { t: 10, r: 10, b: 20, l: 30 },
-            xaxis: { visible: true, showgrid: false, tickfont: { color: isDark ? "#94a3b8" : "#666" } },
-            yaxis: { visible: true, autorange: 'reversed', showgrid: false, tickfont: { color: isDark ? "#94a3b8" : "#666" } },
+            margin: { t: 8, r: 8, b: 28, l: 36 },
+            xaxis: { visible: true, showgrid: false, tickfont: { color: textColor, family: "'Inter', sans-serif", size: 10 } },
+            yaxis: { visible: true, autorange: 'reversed', showgrid: false, tickfont: { color: textColor, family: "'Inter', sans-serif", size: 10 } },
             plot_bgcolor: "transparent",
-            paper_bgcolor: "transparent"
+            paper_bgcolor: "transparent",
+            font: { family: "'Inter', sans-serif", color: textColor }
         };
         Plotly.newPlot(elementId, data, layout, {responsive: true, displayModeBar: false});
+    }
+
+    // ── Render contact statistics panel ──
+    function renderContactStats(containerId, stats) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        const pct = v => stats.total > 0 ? ((v / stats.total) * 100).toFixed(1) : '0.0';
+        el.innerHTML = `
+            <div class="contact-stats-grid">
+                <div class="cstat-item">
+                    <span class="cstat-val">${stats.total}</span>
+                    <span class="cstat-lbl">Total Contacts</span>
+                </div>
+                <div class="cstat-item cstat-sr">
+                    <span class="cstat-val">${stats.sr}</span>
+                    <span class="cstat-lbl">Short-Range<br><small>|i-j| ≤ 6</small></span>
+                </div>
+                <div class="cstat-item cstat-mr">
+                    <span class="cstat-val">${stats.mr}</span>
+                    <span class="cstat-lbl">Medium-Range<br><small>7–24</small></span>
+                </div>
+                <div class="cstat-item cstat-lr">
+                    <span class="cstat-val">${stats.lr}</span>
+                    <span class="cstat-lbl">Long-Range<br><small>|i-j| &gt; 24</small></span>
+                </div>
+            </div>
+            <div class="contact-bar-track mt-3">
+                <div class="contact-bar-seg contact-bar-sr" style="width:${pct(stats.sr)}%" title="Short-range: ${stats.sr}"></div>
+                <div class="contact-bar-seg contact-bar-mr" style="width:${pct(stats.mr)}%" title="Medium-range: ${stats.mr}"></div>
+                <div class="contact-bar-seg contact-bar-lr" style="width:${pct(stats.lr)}%" title="Long-range: ${stats.lr}"></div>
+            </div>
+        `;
     }
 
     // --- REAL-TIME VALIDATION ---
@@ -127,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorPicker = document.getElementById("map-color-picker");
     colorPicker.addEventListener("change", () => {
         if (lastPredictionData) {
-            drawHeatmap("predict-contact-map", lastPredictionData.pred_contacts, "", colorPicker.value, 0, 1);
+            drawHeatmap("predict-contact-prob-map", lastPredictionData.pred_contacts, "", colorPicker.value, 0, 1);
         }
     });
 
@@ -186,10 +223,21 @@ document.addEventListener("DOMContentLoaded", () => {
             statusDesc.textContent = "Step 4: Rendering Results...";
 
             setTimeout(() => {
+                // ── 2D Structure diagram ──
+                draw2DStructure("predict-ss-2d", data.pred_ss, classToChar, data.sequence);
+
+                // ── Legacy text bar ──
                 drawSSBar("predict-ss-bar", data.pred_ss);
                 document.getElementById("predict-ss-text").textContent = data.pred_ss.map(c => classToChar[c]).join("");
-                drawHeatmap("predict-contact-map", data.pred_contacts, "", colorPicker.value, 0, 1);
+
+                // ── Contact maps ──
+                drawBinaryContactMap("predict-contact-binary", data.pred_contacts, 0.5);
+                drawHeatmap("predict-contact-prob-map", data.pred_contacts, "", colorPicker.value, 0, 1);
                 
+                // ── Contact statistics ──
+                const stats = computeContactStats(data.pred_contacts, 0.5);
+                renderContactStats("predict-contact-stats", stats);
+
                 const statusEl = document.getElementById("pred-metric-status");
                 const lenEl = document.getElementById("pred-metric-len");
                 if (lenEl) lenEl.textContent = data.length;
@@ -261,6 +309,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     drawHeatmap("ts-contact-true", pdata.true_contacts, "", "Greys", 0, 1);
                     drawHeatmap("ts-contact-pred", pdata.pred_contacts, "", "Blues", 0, 1);
                     drawHeatmap("ts-contact-diff", diffMap, "", "RdBu", -1, 1);
+
+                    // Binary dot contact maps for test set
+                    drawBinaryContactMap("ts-contact-binary-true", pdata.true_contacts, 0.5);
+                    drawBinaryContactMap("ts-contact-binary-pred", pdata.pred_contacts, 0.5);
                     
                     const resArea = document.getElementById("testset-results");
                     resArea.classList.remove("d-none");
@@ -275,23 +327,85 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- BENCHMARK TAB ---
     function drawBenchmarkChart() {
         const isDark = body.getAttribute("data-theme") === "dark";
+        
+        // Vibrant multi-color gradient palette
+        const colors1 = isDark
+            ? ['#818cf8', '#a78bfa', '#c084fc']   // Indigo-Violet-Purple in dark
+            : ['#4f46e5', '#7c3aed', '#a21caf'];   // Indigo-Violet-Fuchsia in light
+        const colors2 = isDark
+            ? ['#2dd4bf', '#34d399', '#86efac']   // Teal-Emerald-Light green
+            : ['#0d9488', '#059669', '#16a34a'];
+        const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+        const textColor = isDark ? '#9ca3af' : '#4b5563';
+
         const trace1 = {
             x: ['CNN (Residual)', 'BiLSTM', 'Transformer'],
             y: [83.66, 82.55, 82.93],
-            name: 'Q3 Accuracy (%)', type: 'bar', marker: { color: '#2c7da0' }
+            name: 'Q3 Accuracy (%)', 
+            type: 'bar', 
+            marker: { 
+                color: colors1,
+                line: { color: 'transparent', width: 0 },
+                opacity: 0.92
+            },
+            hovertemplate: '<b>%{x}</b><br>Q3 Accuracy: %{y:.2f}%<extra></extra>'
         };
         const trace2 = {
             x: ['CNN (Residual)', 'BiLSTM', 'Transformer'],
             y: [74.48, 72.70, 73.26],
-            name: 'MCC * 100', type: 'bar', marker: { color: '#a8dadc' }
+            name: 'MCC × 100', 
+            type: 'bar', 
+            marker: { 
+                color: colors2,
+                line: { color: 'transparent', width: 0 },
+                opacity: 0.92
+            },
+            hovertemplate: '<b>%{x}</b><br>MCC × 100: %{y:.2f}<extra></extra>'
         };
         const data = [trace1, trace2];
         const layout = { 
-            barmode: 'group', margin: {t:10, b:40},
-            plot_bgcolor: "transparent", paper_bgcolor: "transparent",
-            legend: { orientation: "h", y: -0.2, font: { color: isDark ? "#94a3b8" : "#666" } },
-            xaxis: { tickfont: { color: isDark ? "#94a3b8" : "#666" } },
-            yaxis: { tickfont: { color: isDark ? "#94a3b8" : "#666" } }
+            barmode: 'group', 
+            bargap: 0.22,
+            bargroupgap: 0.08,
+            margin: {t: 20, b: 60, l: 55, r: 20},
+            plot_bgcolor: "transparent", 
+            paper_bgcolor: "transparent",
+            font: {
+                family: "'Inter', sans-serif",
+                color: textColor
+            },
+            legend: { 
+                orientation: "h", 
+                y: -0.22, 
+                x: 0.5,
+                xanchor: "center",
+                font: { color: textColor, size: 13 } 
+            },
+            xaxis: { 
+                tickfont: { color: textColor, size: 13 },
+                showgrid: false,
+                zeroline: false
+            },
+            yaxis: { 
+                tickfont: { color: textColor, size: 13 },
+                showgrid: true,
+                gridcolor: gridColor,
+                gridwidth: 1,
+                zeroline: true,
+                zerolinecolor: gridColor,
+                zerolinewidth: 1,
+                range: [60, 90],
+                title: {
+                    text: 'Score',
+                    font: { size: 14, color: textColor }
+                }
+            },
+            hovermode: 'closest',
+            hoverlabel: {
+                bgcolor: isDark ? '#1f2937' : '#ffffff',
+                font: { family: "'Inter', sans-serif" },
+                bordercolor: isDark ? '#374151' : '#e5e7eb'
+            }
         };
         Plotly.newPlot('benchmark-chart', data, layout, {responsive: true, displayModeBar: false});
     }
