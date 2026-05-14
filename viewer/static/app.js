@@ -127,11 +127,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const colorPicker = document.getElementById("map-color-picker");
-    colorPicker.addEventListener("change", () => {
-        if (lastPredictionData) {
-            drawHeatmap("predict-contact-map", lastPredictionData.pred_contacts, "", colorPicker.value, 0, 1);
-        }
-    });
+    if (colorPicker) {
+        colorPicker.addEventListener("change", () => {
+            if (lastPredictionData) {
+                drawHeatmap("predict-contact-map", lastPredictionData.pred_contacts, "", colorPicker.value, 0, 1);
+            }
+        });
+    }
 
     document.getElementById("btn-predict").addEventListener("click", async () => {
         const seq = seqInput.value.toUpperCase().trim();
@@ -195,6 +197,12 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 drawSSBar("predict-ss-bar", data.pred_ss);
                 document.getElementById("predict-ss-text").textContent = data.pred_ss.map(c => classToChar[c]).join("");
+                
+                // Show extra results row
+                const extraRes = document.getElementById("predict-results-extra");
+                extraRes.classList.remove("d-none");
+                
+                // Draw Prediction Heatmap
                 drawHeatmap("predict-contact-map", data.pred_contacts, "", colorPicker.value, 0, 1);
                 
                 document.getElementById("pred-metric-len").textContent = data.length;
@@ -203,7 +211,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 loadingDiv.classList.add("d-none");
                 resDiv.classList.remove("d-none");
                 resDiv.style.opacity = '0';
-                setTimeout(() => resDiv.style.opacity = '1', 10);
+                setTimeout(() => {
+                    resDiv.style.opacity = '1';
+                    extraRes.style.opacity = '1';
+                    const el = document.getElementById('predict-contact-map');
+                    if (el) Plotly.Plots.resize(el);
+                }, 10);
                 showToast("Prediction synthesized successfully!");
             }, 800);
             
@@ -264,7 +277,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     
                     drawHeatmap("ts-contact-true", pdata.true_contacts, "", "Greys", 0, 1);
-                    drawHeatmap("ts-contact-pred", pdata.pred_contacts, "", "Blues", 0, 1);
                     drawHeatmap("ts-contact-diff", diffMap, "", "RdBu", -1, 1);
                     
                     const resArea = document.getElementById("testset-results");
@@ -272,8 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     resArea.style.opacity = '0';
                     setTimeout(() => {
                         resArea.style.opacity = '1';
-                        // Force resize to fix squashed alignment in 3-column layout
-                        ['ts-contact-true', 'ts-contact-pred', 'ts-contact-diff'].forEach(id => {
+                        // Force resize to fix alignment in 2-column layout
+                        ['ts-contact-true', 'ts-contact-diff'].forEach(id => {
                             const el = document.getElementById(id);
                             if (el) Plotly.Plots.resize(el);
                         });
