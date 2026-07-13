@@ -8,10 +8,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List
+import httpx
 
 # Add parent directory to path to import foldnet
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from foldnet.utils.predict import load_model
+from foldnet.utils.rcsb import search_rcsb_sequence
 
 app = FastAPI(title="FoldNet Dashboard API")
 
@@ -98,6 +100,38 @@ async def get_test_protein(protein_id: str):
     with open(prot_path, 'r') as f:
         data = json.load(f)
     return data
+
+@app.get("/api/pdb/{protein_id}")
+async def get_pdb_file(protein_id: str):
+    """Retrieves PDB coordinates for a protein ID by mapping sequence identity via RCSB search."""
+    prot_path = os.path.join(DASHBOARD_DATA_DIR, "proteins", f"{protein_id}.json")
+    if not os.path.exists(prot_path):
+        raise HTTPException(status_code=404, detail="Protein data not found.")
+        
+    with open(prot_path, 'r') as f:
+        pdata = json.load(f)
+    sequence = pdata['sequence']
+    
+    # Search PDB ID
+    hits = search_rcsb_sequence(sequence, identity=0.95, rows=1)
+    if not hits:
+        hits = search_rcsb_sequence(sequence, identity=0.80, rows=1)
+        
+    if not hits:
+        raise HTTPException(status_code=404, detail="No matching PDB structure found for this sequence.")
+        
+    pdb_id = hits[0]['pdb_id'].lower()
+    url = f"https://files.rcsb.org/download/{pdb_id.upper()}.pdb"
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=15)
+            if resp.status_code == 200:
+                return {"pdb_id": pdb_id, "pdb_content": resp.text}
+            else:
+                raise HTTPException(status_code=502, detail=f"Failed to fetch PDB: HTTP {resp.status_code}")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to load structural coordinates: {str(e)}")
 
 class PredictRequest(BaseModel):
     sequence: str
