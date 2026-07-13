@@ -15,7 +15,8 @@ def test_dataset():
     df = pd.DataFrame({
         'protein_id': ['test1', 'test2'],
         'length': [10, 15],
-        'ss_labels': ['0,1,2,0,1,2,0,1,2,0', '0,1,2,0,1,2,0,1,2,0,1,2,0,1,2']
+        'ss_labels': ['0,1,2,0,1,2,0,1,2,0', '0,1,2,0,1,2,0,1,2,0,1,2,0,1,2'],
+        'sequence': ['A' * 10, 'A' * 15]
     })
     
     # Create dummy embeddings
@@ -36,8 +37,8 @@ def test_dataset():
 def test_collate():
     print("Testing collate_fn...")
     batch = [
-        {'features': torch.randn(10, 1280), 'ss_labels': torch.zeros(10), 'contact_map': torch.zeros(10, 10), 'seq_len': 10, 'protein_id': 'p1'},
-        {'features': torch.randn(20, 1280), 'ss_labels': torch.zeros(20), 'contact_map': torch.zeros(20, 20), 'seq_len': 20, 'protein_id': 'p2'}
+        {'features': torch.randn(10, 1280), 'ss_labels': torch.zeros(10), 'contact_map': torch.zeros(10, 10), 'seq_len': 10, 'protein_id': 'p1', 'sequence': 'A' * 10},
+        {'features': torch.randn(20, 1280), 'ss_labels': torch.zeros(20), 'contact_map': torch.zeros(20, 20), 'seq_len': 20, 'protein_id': 'p2', 'sequence': 'A' * 20}
     ]
     
     collated = collate_fn(batch)

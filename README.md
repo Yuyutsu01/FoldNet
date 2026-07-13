@@ -1,7 +1,7 @@
 <div align="center">
   <img src="viewer/static/logo.png" alt="FoldNet Logo" width="180" />
   
-  # 🧬 FoldNet: Premium Protein Intelligence
+  # FoldNet: Premium Protein Intelligence
   ### **State-of-the-Art Multi-Task Deep Learning for Structural Bioinformatics**
 
   [![Python 3.9+](https://img.shields.io/badge/python-3.9+-38bdf8.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
@@ -16,7 +16,7 @@
 
 </div>
 
-## ✨ Cinematic Intelligence Dashboard
+## Cinematic Intelligence Dashboard
 
 Experience the future of protein analysis with our custom-built, high-performance UI. Built with **FastAPI**, **React-patterns**, and **Glassmorphism**, it offers a premium SaaS-like experience for researchers.
 
@@ -24,15 +24,15 @@ Experience the future of protein analysis with our custom-built, high-performanc
   <img src="viewer/static/dashboard_mockup.png" alt="FoldNet Dashboard" width="100%" style="border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 20px 50px rgba(0,0,0,0.5);" />
 </p>
 
-### 🌌 Dashboard Highlights
-- **⚡ Real-time Inference**: Process sequences instantly with our optimized ESM-2 + FoldNet pipeline.
-- **🔬 Multi-Dimensional Visualization**: Interactive Plotly-powered heatmaps for contact probabilities and color-coded secondary structure bars.
-- **📚 Historical Archives**: Explore the CB513 test set with ground-truth comparisons and structural delta maps.
-- **📉 Performance Analytics**: Integrated benchmarking suite to compare CNN, BiLSTM, and Transformer backbones.
+### Dashboard Highlights
+- **Real-time Inference**: Process sequences instantly with our optimized ESM-2 + FoldNet pipeline.
+- **Multi-Dimensional Visualization**: Interactive Plotly-powered heatmaps for contact probabilities and color-coded secondary structure bars.
+- **Historical Archives**: Explore the CB513 test set with ground-truth comparisons and structural delta maps.
+- **Performance Analytics**: Integrated benchmarking suite to compare CNN, BiLSTM, and Transformer backbones.
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 <table align="center" style="border-collapse: collapse; border: none;">
   <tr>
@@ -56,7 +56,7 @@ Experience the future of protein analysis with our custom-built, high-performanc
 
 ---
 
-## 🏗️ Neural Architecture
+## Neural Architecture
 
 FoldNet utilizes a sophisticated hybrid architecture combining Transformer-based sequence representations with specialized 1D and 2D convolutional heads for local and global structural modeling.
 
@@ -87,7 +87,7 @@ graph TD
 
 ---
 
-## 📊 Performance Benchmarks
+## Performance Benchmarks
 
 Evaluated on the **CB513** test set, FoldNet demonstrates competitive performance across multiple specialized backbones.
 
@@ -102,7 +102,7 @@ Evaluated on the **CB513** test set, FoldNet demonstrates competitive performanc
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ### 1. Prerequisites
 - **OS**: Windows 10+, Ubuntu 20.04+, or macOS.
@@ -136,23 +136,23 @@ Then navigate to: **[http://localhost:8000](http://localhost:8000)**
 
 ---
 
-## 📂 Project Ecosystem
+## Project Ecosystem
 
 ```text
 FoldNet/
-├── 🧠 foldnet/         # Core Neural Architecture & Loss Functions
-├── 📊 data/            # Preprocessing & Dashboard JSON Caches
-├── 🛠️ scripts/          # Training Pipelines & Benchmarking Tools
-├── 🖥️ viewer/           # Premium Glassmorphic Dashboard
+├── foldnet/         # Core Neural Architecture & Loss Functions
+├──  data/            # Preprocessing & Dashboard JSON Caches
+├──  scripts/          # Training Pipelines & Benchmarking Tools
+├── ️ viewer/           # Premium Glassmorphic Dashboard
 │   ├── app.py          # FastAPI Logic & Inference Engine
 │   └── static/         # React-Logic (app.js) & Futuristic Styles
-├── ⚙️ configs/         # YAML Experiment Configurations
-└── 🚀 run.py           # Unified CLI Entry Point
+├──  configs/         # YAML Experiment Configurations
+└──  run.py           # Unified CLI Entry Point
 ```
 
 ---
 
-## 📅 Roadmap
+## Roadmap
 - [ ] **3D Cartesian Head**: Direct coordinate regression for PDB generation.
 - [ ] **Multi-Chain Support**: Interaction modeling for protein-protein complexes.
 - [ ] **Edge Deployment**: Quantized ESM-2 for browser-based local inference.
@@ -162,5 +162,5 @@ FoldNet/
 <div align="center">
   <p>Built with 💙 by the FoldNet Core Team</p>
   <p><b>Shubham • Shivam • Tanishka • Vaibhav</b></p>
-  <p>© 2024 Advanced Bioinformatics Modeling Project</p>
+  <p>© 2026 Advanced Bioinformatics Modeling Project</p>
 </div>

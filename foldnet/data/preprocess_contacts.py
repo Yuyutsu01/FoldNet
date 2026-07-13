@@ -109,37 +109,10 @@ def process_one_chain(pdb_id: str, chain_id: str,
         return False
 
 
+from foldnet.utils.rcsb import search_rcsb_sequence as rcsb_query
+
 def search_rcsb(sequence: str, identity: float = 0.95) -> list:
-    query = {
-        "query": {
-            "type": "terminal",
-            "service": "sequence",
-            "parameters": {
-                "evalue_cutoff": 1,
-                "identity_cutoff": identity,
-                "sequence_type": "protein",
-                "value": sequence
-            }
-        },
-        "return_type": "polymer_instance",
-        "request_options": {
-            "results_verbosity": "minimal",
-            "results_content_type": ["experimental"],
-            "paginate": {"start": 0, "rows": 3}
-        }
-    }
-    try:
-        r = requests.post(RCSB_SEARCH_URL, json=query, timeout=15)
-        if r.status_code != 200:
-            return []
-        hits = []
-        for item in r.json().get('result_set', []):
-            parts = item.get('identifier', '').split('.')
-            if len(parts) == 2:
-                hits.append({'pdb_id': parts[0], 'chain_id': parts[1]})
-        return hits
-    except Exception:
-        return []
+    return rcsb_query(sequence, identity=identity, rows=3)
 
 
 def main(csv_path, out_dir, mode, delay=0.25):

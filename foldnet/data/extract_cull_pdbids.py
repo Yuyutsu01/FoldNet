@@ -24,7 +24,7 @@ import argparse
 import requests
 import pandas as pd
 
-RCSB_SEARCH_URL = "https://search.rcsb.org/rcsbsearch/v2/query"
+from foldnet.utils.rcsb import search_rcsb_sequence as rcsb_query
 
 
 def search_rcsb_sequence(sequence: str, identity: float = 0.99) -> dict | None:
@@ -32,38 +32,8 @@ def search_rcsb_sequence(sequence: str, identity: float = 0.99) -> dict | None:
     Query RCSB PDB for chains matching sequence at given identity.
     Returns {'pdb_id': '1ABC', 'chain_id': 'A'} or None.
     """
-    query = {
-        "query": {
-            "type": "terminal",
-            "service": "sequence",
-            "parameters": {
-                "evalue_cutoff": 1,
-                "identity_cutoff": identity,
-                "sequence_type": "protein",
-                "value": sequence
-            }
-        },
-        "return_type": "polymer_instance",
-        "request_options": {
-            "results_verbosity": "minimal",
-            "results_content_type": ["experimental"],
-            "paginate": {"start": 0, "rows": 3}
-        }
-    }
-    try:
-        r = requests.post(RCSB_SEARCH_URL, json=query, timeout=20)
-        if r.status_code != 200:
-            return None
-        results = r.json().get("result_set", [])
-        if not results:
-            return None
-        # identifier is like "1ABC.A"
-        parts = results[0].get("identifier", "").split(".")
-        if len(parts) == 2:
-            return {"pdb_id": parts[0].upper(), "chain_id": parts[1]}
-        return None
-    except Exception:
-        return None
+    hits = rcsb_query(sequence, identity=identity, rows=1)
+    return hits[0] if hits else None
 
 
 def main(csv_path: str, out_path: str, limit: int = 0, delay: float = 0.3):

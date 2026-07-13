@@ -35,8 +35,11 @@ async def startup_event():
     """Load the model on startup to keep the API fast."""
     global foldnet_model, esm_model, esm_batch_converter, startup_error, test_protein_cache
     try:
-        # Load the best FoldNet model
-        ckpt_path = os.path.join(os.path.dirname(__file__), '..', 'results', 'checkpoints', 'foldnet-epoch=08-val_loss=0.5015.ckpt')
+        # Load the best FoldNet model (allowing env override)
+        ckpt_path = os.environ.get(
+            'FOLDNET_CHECKPOINT_PATH',
+            os.path.join(os.path.dirname(__file__), '..', 'results', 'checkpoints', 'foldnet-epoch=08-val_loss=0.5015.ckpt')
+        )
         if os.path.exists(ckpt_path):
             foldnet_model = load_model(ckpt_path)
             foldnet_model.eval()

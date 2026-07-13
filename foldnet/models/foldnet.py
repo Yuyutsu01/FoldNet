@@ -39,7 +39,8 @@ class FoldNet(pl.LightningModule):
         self.lr = lr
         self.ss_criterion = nn.CrossEntropyLoss(ignore_index=-1)
         # BCEWithLogitsLoss is autocast-safe (required for FP16 mixed precision on GPU)
-        self.contact_criterion = nn.BCEWithLogitsLoss()
+        # Using reduction='none' so we can mask out padded region loss
+        self.contact_criterion = nn.BCEWithLogitsLoss(reduction='none')
 
     def forward(self, features, mask=None):
         # features: (batch, L, feature_dim)
@@ -68,8 +69,17 @@ class FoldNet(pl.LightningModule):
         L = features.size(1)
         ss_loss = self.ss_criterion(ss_logits.view(-1, self.hparams.num_classes), ss_labels.view(-1))
         
-        # Contact loss
-        contact_loss = self.contact_criterion(contact_probs, contact_map.float())
+        # Contact loss (masked to exclude padding residues)
+        raw_contact_loss = self.contact_criterion(contact_probs, contact_map.float())
+        if mask is not None:
+            real_mask = ~mask
+            mask_2d = real_mask.unsqueeze(1) & real_mask.unsqueeze(2)
+            if mask_2d.any():
+                contact_loss = raw_contact_loss[mask_2d].mean()
+            else:
+                contact_loss = torch.tensor(0.0, device=contact_probs.device)
+        else:
+            contact_loss = raw_contact_loss.mean()
         
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
@@ -86,7 +96,19 @@ class FoldNet(pl.LightningModule):
         ss_logits, contact_probs = self(features, mask=mask)
         
         ss_loss = self.ss_criterion(ss_logits.view(-1, self.hparams.num_classes), ss_labels.view(-1))
-        contact_loss = self.contact_criterion(contact_probs, contact_map.float())
+        
+        # Contact loss (masked to exclude padding residues)
+        raw_contact_loss = self.contact_criterion(contact_probs, contact_map.float())
+        if mask is not None:
+            real_mask = ~mask
+            mask_2d = real_mask.unsqueeze(1) & real_mask.unsqueeze(2)
+            if mask_2d.any():
+                contact_loss = raw_contact_loss[mask_2d].mean()
+            else:
+                contact_loss = torch.tensor(0.0, device=contact_probs.device)
+        else:
+            contact_loss = raw_contact_loss.mean()
+            
         total_loss = ss_loss + self.lambda_contact * contact_loss
         
         self.log('val_loss', total_loss, prog_bar=True, batch_size=features.size(0))
