@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Interactive scientific comparison workspace for comparing FoldNet predictions against experimental protein structures.">
-    <title>FoldNet Structural Comparison Workspace</title>
+    <meta name="description" content="Explainable AI Workspace for FoldNet protein predictions and validation.">
+    <title>FoldNet Explainable AI Workspace</title>
     
     <!-- Premium Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome 6 -->
@@ -23,18 +23,18 @@
     <style>
         :root {
             --bg-color: #020617;
-            --panel-bg: rgba(15, 23, 42, 0.45);
-            --panel-border: rgba(56, 189, 248, 0.2);
+            --panel-bg: rgba(15, 23, 42, 0.65);
+            --panel-border: rgba(56, 189, 248, 0.25);
             --accent-primary: #38bdf8;
             --accent-secondary: #818cf8;
-            --text-main: #f8fafc;
-            --text-muted: #64748b;
-            --ss-h: #f43f5e; /* Helix: Rose */
-            --ss-e: #fbbf24; /* Sheet: Amber */
-            --ss-c: #06b6d4; /* Coil: Cyan */
-            --color-correct: #10b981; /* Correct: Emerald */
-            --color-incorrect: #ef4444; /* Incorrect: Red */
-            --color-low-conf: #f59e0b; /* Low Confidence: Amber */
+            --text-main: #ffffff;      /* Absolute white main text */
+            --text-label: #f8fafc;     /* High contrast white labels */
+            --ss-h: #f43f5e;           /* Helix: Rose */
+            --ss-e: #fbbf24;           /* Sheet: Amber */
+            --ss-c: #06b6d4;           /* Coil: Cyan */
+            --color-correct: #10b981;  /* Correct: Emerald */
+            --color-incorrect: #ef4444;/* Incorrect: Red */
+            --color-low-conf: #f97316; /* Low Confidence: Orange */
         }
 
         body {
@@ -43,8 +43,8 @@
             color: var(--text-main);
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 20% 80%, rgba(129, 140, 248, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 80% 15%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 20% 75%, rgba(129, 140, 248, 0.05) 0%, transparent 40%);
             background-attachment: fixed;
             min-height: 100vh;
         }
@@ -53,20 +53,95 @@
             font-family: 'Outfit', sans-serif;
         }
 
-        /* Glassmorphism Styling */
+        /* Cinematic Startup Overlay */
+        #startup-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #020617;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .startup-logo-container {
+            position: relative;
+            margin-bottom: 2rem;
+            animation: logo-pulse 2s infinite ease-in-out;
+        }
+
+        .startup-logo {
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6));
+        }
+
+        .startup-title {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            transform: translateY(15px);
+            animation: text-fade-up 0.8s 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .startup-subtitle {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 8px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: text-fade-up 0.8s 0.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .startup-bar {
+            width: 240px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .startup-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            animation: progress-fill 2.2s forwards cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        /* Glassmorphism Panels */
         .glass-panel {
             background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--panel-border);
             border-radius: 20px;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .glass-panel:hover {
-            border-color: rgba(56, 189, 248, 0.35);
-            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.7), 0 0 15px rgba(56, 189, 248, 0.05);
+            border-color: rgba(56, 189, 248, 0.45);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.08);
         }
 
         /* WebGL Viewports */
@@ -77,7 +152,7 @@
             border-radius: 16px;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            background-color: #0b0f19;
+            background-color: #05070d;
         }
 
         .viewer-canvas {
@@ -97,8 +172,9 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(4px);
+            color: #ffffff;
         }
 
         .viewer-controls {
@@ -111,17 +187,17 @@
         }
 
         .btn-viewer-control {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(15, 23, 42, 0.8);
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(15, 23, 42, 0.85);
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
         }
 
@@ -129,88 +205,275 @@
             background: var(--accent-primary);
             color: #000;
             border-color: var(--accent-primary);
+            transform: scale(1.05);
         }
 
-        /* Sequence Viewer */
+        /* High Contrast Labels */
+        .scientific-label {
+            color: var(--text-label) !important;
+            font-weight: 700 !important;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        /* Residue Timeline Navigation Bar */
+        .timeline-container {
+            width: 100%;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 12px;
+        }
+
+        .timeline-pixel {
+            flex-grow: 1;
+            height: 100%;
+            transition: all 0.15s ease;
+            border-right: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .timeline-pixel:hover {
+            transform: scaleY(1.3);
+            filter: brightness(1.3);
+            z-index: 10;
+        }
+
+        .timeline-pixel.selected {
+            box-shadow: 0 0 8px #fff;
+            border: 1px solid #fff;
+            transform: scaleY(1.4);
+            z-index: 20;
+        }
+
+        /* Sequence Viewer & Strips */
         .seq-scroll-container {
             overflow-x: auto;
             white-space: nowrap;
-            padding: 15px 10px;
+            padding: 18px 12px;
             border-radius: 14px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+
+        .seq-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .seq-row-label {
+            width: 90px;
+            min-width: 90px;
+            color: var(--text-label);
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            margin-right: 10px;
+        }
+
+        .seq-row-items {
+            display: flex;
         }
 
         .seq-residue {
             display: inline-flex;
             flex-direction: column;
             align-items: center;
-            margin: 0 2px;
+            margin: 0 3px;
             cursor: pointer;
             user-select: none;
-            transition: all 0.15s ease;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             padding: 4px;
             border-radius: 6px;
             border: 1px solid transparent;
         }
 
         .seq-residue:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
         }
 
         .seq-residue.selected {
-            background: rgba(56, 189, 248, 0.15);
+            background: rgba(56, 189, 248, 0.2);
             border-color: var(--accent-primary);
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+        }
+
+        /* Error Indicator Pulse */
+        .seq-residue.incorrect-pulse {
+            position: relative;
+        }
+        
+        .seq-residue.incorrect-pulse::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--color-incorrect);
+            box-shadow: 0 0 8px var(--color-incorrect);
+            animation: err-pulse 1.8s infinite ease-in-out;
         }
 
         .seq-letter {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             line-height: 1;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
+            border-radius: 5px;
             color: #000;
         }
 
         .seq-index {
             font-size: 0.65rem;
-            color: var(--text-muted);
-            margin-top: 4px;
+            color: #94a3b8;
+            margin-top: 6px;
             font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
         }
 
-        /* Secondary Structure coloring classes */
+        /* Tiny block indicators for strips */
+        .strip-block {
+            width: 26px;
+            height: 12px;
+            margin: 0 3px;
+            border-radius: 3px;
+            opacity: 0.85;
+            transition: all 0.2s ease;
+        }
+
+        .strip-block:hover {
+            opacity: 1;
+            transform: scaleY(1.2);
+        }
+
+        /* Secondary Structure colors */
         .color-ss-H { background-color: var(--ss-h) !important; color: #fff !important; }
         .color-ss-E { background-color: var(--ss-e) !important; color: #000 !important; }
         .color-ss-C { background-color: var(--ss-c) !important; color: #fff !important; }
 
-        /* Correctness coloring classes */
+        /* Correctness colors */
         .color-correct { background-color: var(--color-correct) !important; color: #fff !important; }
         .color-incorrect { background-color: var(--color-incorrect) !important; color: #fff !important; }
+        .color-low-conf { background-color: var(--color-low-conf) !important; color: #fff !important; }
+        .color-unknown { background-color: #64748b !important; color: #fff !important; }
+
+        /* Confidence Gradient spectrum classes */
+        .conf-very-high { background-color: #047857 !important; } /* Dark Emerald */
+        .conf-high { background-color: #10b981 !important; }      /* Emerald */
+        .conf-medium { background-color: #fbbf24 !important; }    /* Yellow/Amber */
+        .conf-low { background-color: #f97316 !important; }       /* Orange */
+        .conf-very-low { background-color: #ef4444 !important; }  /* Red */
+
+        .legend-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        /* Custom progress bar styles for Residue Details */
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .progress-bar-label {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 700;
+            width: 45px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .progress-bar-track {
+            flex-grow: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            margin: 0 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.2s ease-out;
+        }
+        .progress-bar-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #fff;
+            width: 35px;
+            text-align: right;
+        }
+
+        /* Summary Stats above Right Viewer */
+        .summary-banner {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 10px 18px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-val {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.1;
+        }
+
+        .summary-lbl {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-label);
+            font-weight: 700;
+        }
 
         /* Form elements */
         .form-select, .form-control {
-            background: rgba(15, 23, 42, 0.8) !important;
+            background: rgba(15, 23, 42, 0.85) !important;
             border: 1px solid var(--panel-border) !important;
             border-radius: 12px !important;
             color: #fff !important;
+            padding: 10px 14px;
         }
 
         .form-select:focus, .form-control:focus {
             border-color: var(--accent-primary) !important;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15) !important;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
         }
 
-        /* Custom tab styling */
+        /* Top Bar Navigation */
         .comparison-nav {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.15);
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
@@ -220,53 +483,22 @@
         .comparison-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             text-decoration: none;
         }
 
         .brand-logo {
-            height: 40px;
-            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+            height: 44px;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
         }
 
         .brand-title {
-            font-size: 1.5rem;
+            font-size: 1.65rem;
             font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-
-        /* Sidebar stats */
-        .stat-box {
-            padding: 15px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        /* Color legends */
-        .legend-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            display: inline-block;
         }
 
         /* Custom scrollbar */
@@ -287,26 +519,74 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(56, 189, 248, 0.3);
         }
+
+        /* Animations */
+        @keyframes logo-pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.5)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.8)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.5)); }
+        }
+
+        @keyframes text-fade-up {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes progress-fill {
+            to { width: 100%; }
+        }
+
+        @keyframes err-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.4); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .info-fade-in {
+            animation: infoFadeIn 200ms ease-out forwards;
+        }
+        @keyframes infoFadeIn {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="container-fluid py-4 px-4 px-lg-5">
+    <!-- Cinematic Startup Overlay -->
+    <div id="startup-screen">
+        <div class="startup-logo-container">
+            <svg class="startup-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="38" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8 6"/>
+                <circle cx="50" cy="50" r="22" stroke="#818cf8" stroke-width="3" stroke-dasharray="4 4"/>
+                <circle cx="50" cy="50" r="6" fill="#38bdf8"/>
+                <line x1="50" y1="12" x2="50" y2="88" stroke="#38bdf8" stroke-width="2" opacity="0.3"/>
+                <line x1="12" y1="50" x2="88" y2="50" stroke="#38bdf8" stroke-width="2" opacity="0.3"/>
+            </svg>
+        </div>
+        <h1 class="startup-title">FoldNet</h1>
+        <div class="startup-subtitle">Scientific Analysis Workspace</div>
+        <div class="startup-bar">
+            <div class="startup-progress"></div>
+        </div>
+    </div>
+
+    <!-- Main Workspace Dashboard Content -->
+    <div class="container-fluid py-4 px-4 px-lg-5" id="main-content" style="opacity: 0;">
         
-        <!-- Header & Nav -->
+        <!-- Premium Top Navigation -->
         <header class="comparison-nav pb-3">
-            <a href="/" class="comparison-brand">
+            <a href="#" class="comparison-brand">
                 <img src="/static/logo.png" alt="FoldNet" class="brand-logo">
-                <span class="brand-title">FoldNet Workspace</span>
+                <span class="brand-title">FoldNet</span>
             </a>
             <div class="d-flex align-items-center gap-3">
-                <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                    <i class="fa-solid fa-house me-1"></i> Dashboard Home
-                </a>
-                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 border border-info border-opacity-20 rounded-pill">
-                    <i class="fa-solid fa-flask-vial me-1"></i> Scientific Analysis Mode
+                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 border border-info border-opacity-25 rounded-pill">
+                    <i class="fa-solid fa-square-poll-vertical me-1"></i> Scientific Analysis Workspace
                 </span>
+                <button class="btn btn-sm btn-outline-light rounded-circle" id="btn-help" title="Documentation Help" style="width: 32px; height: 32px; padding: 0;">
+                    <i class="fa-solid fa-question"></i>
+                </button>
             </div>
         </header>
 
@@ -314,66 +594,108 @@
         <div class="row">
             
             <!-- Left Sidebar Controls -->
-            <div class="col-lg-3 col-xl-3 mb-4">
+            <div class="col-lg-3 col-xl-3 mb-4 d-flex flex-column">
                 <div class="glass-panel p-4 mb-4">
                     <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-database text-info me-2"></i>Select Target</h5>
                     <div class="mb-3">
-                        <label class="form-label small text-uppercase text-muted">Protein Archive</label>
+                        <label class="form-label scientific-label">Protein Archive</label>
                         <select id="protein-select" class="form-select"></select>
                     </div>
                     <div id="target-details" class="d-none">
                         <hr class="border-white border-opacity-10 my-3">
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">Sequence Length:</span>
+                            <span class="scientific-label small">Sequence Length:</span>
                             <span class="fw-bold text-white" id="lbl-length">-</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">Q3 Accuracy:</span>
+                            <span class="scientific-label small">Q3 Accuracy:</span>
                             <span class="fw-bold text-success" id="lbl-q3">-</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">Contact Prec@L:</span>
+                            <span class="scientific-label small">Contact Prec@L:</span>
                             <span class="fw-bold text-info" id="lbl-pl">-</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="glass-panel p-4 mb-4">
-                    <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-sliders text-info me-2"></i>Visualization Modes</h5>
-                    
-                    <div class="mb-3">
-                        <label class="form-label small text-uppercase text-muted">Color Mapping</label>
-                        <select id="coloring-mode" class="form-select">
-                            <option value="ss" selected>Secondary Structure (H/E/C)</option>
-                            <option value="correctness">Difference Map (Correct/Incorrect)</option>
-                            <option value="confidence">Prediction Confidence Gradient</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small text-uppercase text-muted">Contact Maps & 3D Lines</label>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" role="switch" id="chk-show-contacts" checked>
-                            <label class="form-check-label text-light small" for="chk-show-contacts">Render Contact Lines</label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" role="switch" id="chk-contacts-true" checked>
-                            <label class="form-check-label text-muted small" for="chk-contacts-true">Show Ground Truth (Grey)</label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" role="switch" id="chk-contacts-pred" checked>
-                            <label class="form-check-label text-info small" for="chk-contacts-pred">Show Predicted (Cyan)</label>
-                        </div>
-                    </div>
-
+                <div class="glass-panel p-4 mb-4 flex-grow-1 d-flex flex-column justify-content-between" id="vis-controls-card">
                     <div>
-                        <label class="form-label small text-uppercase text-muted">Probability Threshold</label>
-                        <input type="range" class="form-range" id="threshold-slider" min="0.1" max="0.95" step="0.05" value="0.7">
-                        <div class="d-flex justify-content-between text-muted small mt-1">
-                            <span>0.10</span>
-                            <span class="text-info fw-bold" id="threshold-val">0.70</span>
-                            <span>0.95</span>
+                        <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-sliders text-info me-2"></i>Visualization Controls</h5>
+                        
+                        <!-- Section 1: Color Mode Select -->
+                        <div class="mb-3">
+                            <label class="form-label scientific-label mb-2">Color Mode</label>
+                            <div class="btn-group w-100 btn-group-sm" role="group" aria-label="Color Mode">
+                                <input type="radio" class="btn-check" name="color-mode" id="color-mode-native" value="native" autocomplete="off">
+                                <label class="btn btn-outline-info" for="color-mode-native">Native</label>
+
+                                <input type="radio" class="btn-check" name="color-mode" id="color-mode-pred" value="prediction" autocomplete="off">
+                                <label class="btn btn-outline-info" for="color-mode-pred">Prediction</label>
+
+                                <input type="radio" class="btn-check" name="color-mode" id="color-mode-diff" value="difference" autocomplete="off" checked>
+                                <label class="btn btn-outline-info" for="color-mode-diff">Difference</label>
+                            </div>
                         </div>
+
+                        <hr class="border-white border-opacity-10 my-3">
+
+                        <!-- Section 2: Secondary Structure Filter -->
+                        <div class="mb-3">
+                            <label class="form-label scientific-label mb-2">Secondary Structure</label>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-filter-helix">
+                                <label class="form-check-label text-light small fw-bold" for="chk-filter-helix">Helix Only</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-filter-sheet">
+                                <label class="form-check-label text-light small fw-bold" for="chk-filter-sheet">Sheet Only</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-filter-coil">
+                                <label class="form-check-label text-light small fw-bold" for="chk-filter-coil">Coil Only</label>
+                            </div>
+                        </div>
+
+                        <hr class="border-white border-opacity-10 my-3">
+
+                        <!-- Section 3: Prediction Analysis -->
+                        <div class="mb-3">
+                            <label class="form-label scientific-label mb-2">Prediction Analysis</label>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-show-errors-only">
+                                <label class="form-check-label text-warning small fw-bold" for="chk-show-errors-only">Show Errors Only</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-highlight-low-conf">
+                                <label class="form-check-label text-warning small fw-bold" for="chk-highlight-low-conf">Highlight Low Confidence</label>
+                            </div>
+                        </div>
+
+                        <hr class="border-white border-opacity-10 my-3">
+
+                        <!-- Section 4: Visualization -->
+                        <div class="mb-3">
+                            <label class="form-label scientific-label mb-2">Visualization</label>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-show-contacts" checked>
+                                <label class="form-check-label text-info small fw-bold" for="chk-show-contacts">Render Contact Lines</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-residue-labels">
+                                <label class="form-check-label text-info small fw-bold" for="chk-residue-labels">Residue Labels</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="chk-selection-sync" checked>
+                                <label class="form-check-label text-info small fw-bold" for="chk-selection-sync">Selection Sync</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Utilities -->
+                    <div class="pt-3">
+                        <button class="btn btn-info w-100 btn-sm text-white fw-bold outfit" id="btn-reset-vis">
+                            <i class="fa-solid fa-rotate-left me-1"></i> Reset Visualization
+                        </button>
                     </div>
                 </div>
             </div>
@@ -381,11 +703,44 @@
             <!-- Central Viewport & Analysis -->
             <div class="col-lg-9 col-xl-9">
                 
+                <!-- Central Stats & Legend Header Row -->
+                <div class="glass-panel p-3 mb-4 d-flex flex-column flex-lg-row justify-content-between align-items-center gap-3">
+                    <!-- Summary Banner Panel -->
+                    <div class="summary-banner mb-0 flex-grow-1 w-100">
+                        <div class="summary-item">
+                            <div class="summary-val text-success" id="sum-acc">-</div>
+                            <div class="summary-lbl">Q3 Agree</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-val text-success" id="sum-correct">-</div>
+                            <div class="summary-lbl">Correct</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-val text-danger" id="sum-incorrect">-</div>
+                            <div class="summary-lbl">Incorrect</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-val text-warning" id="sum-lowconf">-</div>
+                            <div class="summary-lbl">Low Conf</div>
+                        </div>
+
+                    </div>
+                    <!-- Color Legend -->
+                    <div class="d-flex flex-column align-items-md-end shrink-0 w-auto px-2">
+                        <div class="scientific-label small mb-2 text-md-end"><i class="fa-solid fa-circle-info text-info me-1"></i> Color Legend</div>
+                        <div class="d-flex gap-3 small text-white font-monospace" style="font-size: 0.65rem;">
+                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator" style="background-color: #10b981;"></div> Correct</div>
+                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator" style="background-color: #ef4444;"></div> Incorrect</div>
+                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator" style="background-color: #f97316;"></div> Low Conf</div>
+                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator" style="background-color: #64748b;"></div> Background</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Main Viewer Row -->
                 <div class="row mb-4">
-                    <!-- Left Viewer: Native Structure -->
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <div class="glass-panel p-3 h-100">
+                    <div class="col-md-6 mb-3 mb-md-0 d-flex flex-column">
+                        <div class="glass-panel p-3 flex-grow-1">
                             <div class="viewer-container">
                                 <div class="viewer-label"><i class="fa-solid fa-dna text-danger me-1"></i>Experimental PDB (True)</div>
                                 <div id="gldivA" class="viewer-canvas"></div>
@@ -398,10 +753,10 @@
                     </div>
 
                     <!-- Right Viewer: Prediction Overlay -->
-                    <div class="col-md-6">
-                        <div class="glass-panel p-3 h-100">
+                    <div class="col-md-6 d-flex flex-column">
+                        <div class="glass-panel p-3 flex-grow-1">
                             <div class="viewer-container">
-                                <div class="viewer-label"><i class="fa-solid fa-wand-magic-sparkles text-info me-1"></i>FoldNet Prediction Overlay</div>
+                                <div class="viewer-label"><i class="fa-solid fa-wand-magic-sparkles text-info me-1"></i>Prediction Analysis View</div>
                                 <div id="gldivB" class="viewer-canvas"></div>
                                 <div class="viewer-controls">
                                     <button class="btn-viewer-control" id="btn-reset-b" title="Reset View"><i class="fa-solid fa-arrows-spin"></i></button>
@@ -412,68 +767,193 @@
                     </div>
                 </div>
 
-                <!-- Sequence Viewer -->
+                <!-- Sequence Viewer Card -->
                 <div class="glass-panel p-4 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold text-white mb-0"><i class="fa-solid fa-align-left text-info me-2"></i>Interactive Sequence Analysis</h5>
-                        <div class="d-flex gap-4 small text-muted">
-                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator color-ss-H"></div> Helix (H)</div>
-                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator color-ss-E"></div> Strand (E)</div>
-                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator color-ss-C"></div> Coil (C)</div>
+                        <div class="d-flex gap-3 small text-white font-monospace">
+                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator color-ss-H"></div> Helix</div>
+                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator color-ss-E"></div> Sheet</div>
+                            <div class="d-flex align-items-center gap-1"><div class="legend-indicator color-ss-C"></div> Coil</div>
                         </div>
                     </div>
+                    
+                    <!-- Residue Timeline Navigation Overview Bar -->
+                    <div class="timeline-container" id="timeline-overview" title="Residue Timeline Navigation: Click pixel to jump"></div>
+                    
                     <div class="seq-scroll-container" id="seq-container">
-                        <div class="text-center py-3 text-muted">Select a protein target to load the sequence stream.</div>
+                        <div class="text-center py-3 text-white">Select a protein target to load the sequence stream.</div>
                     </div>
                 </div>
+            </div> <!-- Close col-lg-9 -->
+        </div> <!-- Close main grid row -->
 
-                <!-- Split Map & Stats Panel -->
-                <div class="row">
-                    <!-- Plotly Contact Map -->
-                    <div class="col-xl-7 mb-4">
-                        <div class="glass-panel p-4 h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="fw-bold text-white mb-0"><i class="fa-solid fa-grid-2 me-2"></i>Contact Matrix Visualizer</h5>
-                                <select id="matrix-mode" class="form-select form-select-sm w-auto">
-                                    <option value="dual" selected>Overlay Mode (True/Pred)</option>
-                                    <option value="diff">Difference Matrix (True - Pred)</option>
-                                </select>
-                            </div>
-                            <div id="contact-heatmap-div" style="height: 400px; width: 100%;"></div>
-                        </div>
+        <!-- Split Map & Stats Panel -->
+        <div class="row">
+            <!-- Plotly Contact Map (50%) -->
+            <div class="col-xl-6 mb-4 d-flex flex-column">
+                <div class="glass-panel p-4 flex-grow-1 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center mb-1 w-100">
+                        <h5 class="fw-bold text-white mb-0"><i class="fa-solid fa-circle-nodes text-info me-2"></i>Contact Matrix Analysis</h5>
+                        <select id="matrix-mode" class="form-select form-select-sm w-auto">
+                            <option value="diff" selected>Difference Analysis (Default)</option>
+                            <option value="true">Ground Truth Only</option>
+                            <option value="pred">Prediction Only</option>
+                        </select>
                     </div>
+                    <!-- Dynamic Map Legend -->
+                    <div id="matrix-legend" class="d-flex flex-wrap gap-3 small text-white font-monospace mb-2" style="font-size: 0.65rem;">
+                        <!-- Will be populated dynamically via JS -->
+                    </div>
+                    <div id="contact-heatmap-div" class="my-auto mx-auto w-100" style="height: 380px; max-width: 100%;"></div>
+                </div>
+            </div>
 
-                    <!-- Residue Inspector & Metadata -->
-                    <div class="col-xl-5 mb-4">
-                        <div class="glass-panel p-4 h-100">
-                            <h5 class="fw-bold text-white mb-4"><i class="fa-solid fa-circle-info text-info me-2"></i>Residue Inspector</h5>
-                            <div id="residue-inspector-empty" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-fingerprint display-5 mb-3 opacity-20"></i>
-                                <p>Click a residue on the sequence or contact map to inspect scientific annotations.</p>
-                            </div>
-                            <div id="residue-inspector-content" class="d-none">
-                                <div class="table-responsive">
-                                    <table class="table table-dark table-sm bg-transparent border-0">
-                                        <tbody>
-                                            <tr><td class="text-muted py-2 border-0">Residue Coordinate:</td><td class="fw-bold text-white py-2 border-0 text-end" id="insp-num">-</td></tr>
-                                            <tr><td class="text-muted py-2 border-0">Residue Type:</td><td class="fw-bold text-white py-2 border-0 text-end" id="insp-name">-</td></tr>
-                                            <tr><td class="text-muted py-2 border-0">Experimental SS:</td><td class="fw-bold py-2 border-0 text-end" id="insp-true-ss">-</td></tr>
-                                            <tr><td class="text-muted py-2 border-0">Predicted SS:</td><td class="fw-bold py-2 border-0 text-end" id="insp-pred-ss">-</td></tr>
-                                            <tr><td class="text-muted py-2 border-0">SS Classification:</td><td class="fw-bold py-2 border-0 text-end" id="insp-ss-match">-</td></tr>
-                                            <tr><td class="text-muted py-2 border-0">True Contacts:</td><td class="fw-bold text-white py-2 border-0 text-end" id="insp-true-contacts">-</td></tr>
-                                            <tr><td class="text-muted py-2 border-0">Predicted Contacts:</td><td class="fw-bold text-info py-2 border-0 text-end" id="insp-pred-contacts">-</td></tr>
-                                        </tbody>
-                                    </table>
+            <!-- Residue Details & Metadata (50%) -->
+            <div class="col-xl-6 mb-4 d-flex flex-column">
+                <div class="glass-panel p-4 flex-grow-1 d-flex flex-column justify-content-between" id="residue-details" style="min-height: 480px;">
+                    <h5 class="fw-bold text-white mb-2"><i class="fa-solid fa-circle-info text-info me-2"></i>Residue Details</h5>
+                    
+                    <!-- Centered and Polished Empty State -->
+                    <div id="residue-inspector-empty" class="text-center py-5 my-auto d-flex flex-column align-items-center justify-content-center gap-2">
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 55px; height: 55px;">
+                            <i class="fa-solid fa-fingerprint display-6 opacity-75"></i>
+                        </div>
+                        <h5 class="fw-bold text-white outfit mb-1">No Residue Selected</h5>
+                        <p class="text-white opacity-50 small mb-0 px-4" style="max-width: 320px; font-size: 0.75rem;">
+                            Select a residue from the 3D viewer, sequence analysis, or contact matrix.
+                        </p>
+                        <span class="text-muted" style="font-size: 0.65rem; font-style: italic;">Residue information will appear here.</span>
+                    </div>
+                    
+                    <!-- Selected Residue Info Content (Hidden by default) -->
+                    <div id="residue-inspector-content" class="d-none flex-column gap-3">
+                        
+                        <!-- 1. Compact Residue Information Grid -->
+                        <div>
+                            <div class="row g-2 text-center">
+                                <div class="col-3">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded">
+                                        <div class="text-muted small scientific-label" style="font-size: 0.55rem; text-transform: uppercase;">Number</div>
+                                        <div class="fw-bold text-white text-sm mt-1" id="insp-residue-num">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded">
+                                        <div class="text-muted small scientific-label" style="font-size: 0.55rem; text-transform: uppercase;">Name</div>
+                                        <div class="fw-bold text-white text-sm mt-1" id="insp-residue-name">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded">
+                                        <div class="text-muted small scientific-label" style="font-size: 0.55rem; text-transform: uppercase;">Chain</div>
+                                        <div class="fw-bold text-white text-sm mt-1" id="insp-residue-chain">A</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded">
+                                        <div class="text-muted small scientific-label" style="font-size: 0.55rem; text-transform: uppercase;">Type</div>
+                                        <div class="fw-bold text-white text-sm mt-1" id="insp-residue-type">-</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- 2. Ground Truth vs Prediction Comparison Grid -->
+                        <div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded h-100 d-flex flex-column justify-content-between">
+                                        <div class="text-muted small scientific-label" style="font-size: 0.55rem; text-transform: uppercase;">Ground Truth SS</div>
+                                        <div class="fw-bold text-white text-sm mt-1" id="insp-true-ss-val">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded h-100 d-flex flex-column justify-content-between">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted small scientific-label" style="font-size: 0.55rem; text-transform: uppercase;">Prediction</span>
+                                            <span class="badge rounded font-monospace" id="insp-ss-match" style="font-size: 0.5rem; padding: 2px 4px;">-</span>
+                                        </div>
+                                        <div class="fw-bold text-white text-sm mt-1" id="insp-pred-ss-val">-</div>
+                                        <div class="text-xs text-info font-monospace mt-1" id="insp-confidence-val">Confidence: -</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 3. Prediction Probabilities Progress Bars -->
+                        <div>
+                            <div class="text-muted small scientific-label mb-2">Prediction Probabilities</div>
+                            <div class="progress-bar-container">
+                                <span class="progress-bar-label">Helix</span>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill color-ss-H" id="prob-bar-helix" style="width: 0%;"></div>
+                                </div>
+                                <span class="progress-bar-val" id="prob-val-helix">0%</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <span class="progress-bar-label">Sheet</span>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill color-ss-E" id="prob-bar-sheet" style="width: 0%;"></div>
+                                </div>
+                                <span class="progress-bar-val" id="prob-val-sheet">0%</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <span class="progress-bar-label">Coil</span>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill color-ss-C" id="prob-bar-coil" style="width: 0%;"></div>
+                                </div>
+                                <span class="progress-bar-val" id="prob-val-coil">0%</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 4. Contact Statistics -->
+                        <div>
+                            <div class="text-muted small scientific-label mb-2">Contact Statistics</div>
+                            <div class="row g-1 text-center font-monospace">
+                                <div class="col" style="flex: 1 0 20%;">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded h-100">
+                                        <div class="fw-bold text-sm text-white" id="stat-native">-</div>
+                                        <div class="text-muted" style="font-size: 0.5rem; text-transform: uppercase; font-weight: 600;">Native</div>
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1 0 20%;">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded h-100">
+                                        <div class="fw-bold text-sm text-white" id="stat-predicted">-</div>
+                                        <div class="text-muted" style="font-size: 0.5rem; text-transform: uppercase; font-weight: 600;">Predicted</div>
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1 0 20%;">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded h-100">
+                                        <div class="fw-bold text-sm text-success" id="stat-shared">-</div>
+                                        <div class="text-muted" style="font-size: 0.5rem; text-transform: uppercase; font-weight: 600;">Shared</div>
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1 0 20%;">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded h-100">
+                                        <div class="fw-bold text-sm text-warning" id="stat-missed">-</div>
+                                        <div class="text-muted" style="font-size: 0.5rem; text-transform: uppercase; font-weight: 600;">Missed</div>
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1 0 20%;">
+                                    <div class="bg-black bg-opacity-25 p-2 rounded h-100">
+                                        <div class="fw-bold text-sm text-danger" id="stat-false">-</div>
+                                        <div class="text-muted" style="font-size: 0.5rem; text-transform: uppercase; font-weight: 600;">False</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 5. Prediction Notes Badges -->
+                        <div>
+                            <div class="text-muted small scientific-label mb-2">Prediction Notes</div>
+                            <div class="d-flex flex-wrap gap-1" id="insp-notes-container">
+                                <!-- Dynamic badges populated by JS -->
+                            </div>
                     </div>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
     <!-- Actions Toast -->
@@ -482,6 +962,32 @@
             <div class="d-flex">
                 <div class="toast-body" id="action-toast-body"></div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Documentation Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark border-secondary text-white rounded-4">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title fw-bold text-info"><i class="fa-solid fa-circle-question me-2"></i>FoldNet Workspace Manual</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>📌 Dual synchronized Viewports</h6>
+                    <p class="small text-light">Left viewport shows the exact coordinates of the target experimental PDB colored by True Secondary Structure. The right viewport overlays FoldNet's predicted structural annotations on the same geometry.</p>
+                    
+                    <h6>🔍 Selection and Residue Linking</h6>
+                    <p class="small text-light">Hovering or clicking a residue in the sequence or 3D canvas highlights it across all panels (Sequence, both 3D viewers, contact map, and the Residue Inspector).</p>
+
+                    <h6>🎯 Contact Lines Color Code</h6>
+                    <ul class="small text-light">
+                        <li><span class="text-info fw-bold">Cyan Lines</span>: Predicted contacts matching ground truth (True Positives).</li>
+                        <li><span class="text-danger fw-bold">Red Lines</span>: Predicted contacts absent in native structure (False Positives).</li>
+                        <li><span class="text-warning fw-bold">Orange Lines</span>: Real contacts missed by the model (False Negatives).</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
