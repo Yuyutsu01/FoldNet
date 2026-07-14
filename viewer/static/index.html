@@ -472,33 +472,221 @@
         }
 
         /* Top Bar Navigation */
+        /* Premium Header Styling */
         .comparison-nav {
             border-bottom: 1px solid rgba(56, 189, 248, 0.15);
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            overflow: visible;
+        }
+
+        #header-bg-canvas {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            width: calc(100% + 40px);
+            height: calc(100% + 40px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.06;
         }
 
         .comparison-brand {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
             text-decoration: none;
+            position: relative;
+            z-index: 10;
         }
 
-        .brand-logo {
-            height: 44px;
-            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
+        .logo-animation-wrapper {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.15));
+            transform-origin: center;
+        }
+
+        .brand-logo-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* SVG Element Animations */
+        .svg-glow-circle {
+            transition: fill 0.6s ease, filter 0.6s ease;
+            transform-origin: center;
+            animation: glow-breathe 8s ease-in-out infinite alternate;
+        }
+
+        .svg-outer-ring {
+            transform-origin: 50px 50px;
+            animation: ring-rotate 16s linear infinite;
+        }
+
+        .svg-backbone-path {
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            animation: ribbon-reveal 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .svg-node {
+            opacity: 0;
+            transform-origin: center;
+            animation: node-reveal 0.5s 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .node-1 { animation-name: node-reveal, node-pulse-1; animation-duration: 0.5s, 4s; animation-delay: 1.8s, 2.3s; animation-iteration-count: 1, infinite; }
+        .node-2 { animation-name: node-reveal, node-pulse-2; animation-duration: 0.5s, 4s; animation-delay: 1.9s, 2.7s; animation-iteration-count: 1, infinite; }
+        .node-3 { animation-name: node-reveal, node-pulse-3; animation-duration: 0.5s, 4s; animation-delay: 2.0s, 3.1s; animation-iteration-count: 1, infinite; }
+        .node-core { animation-name: node-reveal, node-pulse-core; animation-duration: 0.5s, 6s; animation-delay: 2.1s, 3.5s; animation-iteration-count: 1, infinite; }
+
+        /* Animation Definitions */
+        @keyframes glow-breathe {
+            0% { transform: scale(0.9); opacity: 0.45; }
+            100% { transform: scale(1.1); opacity: 0.75; }
+        }
+
+        @keyframes ring-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes ribbon-reveal {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes node-reveal {
+            to { opacity: 1; }
+        }
+
+        @keyframes node-pulse-1 {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.18); filter: brightness(1.3) drop-shadow(0 0 4px #818cf8); }
+        }
+
+        @keyframes node-pulse-2 {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.18); filter: brightness(1.3) drop-shadow(0 0 4px #38bdf8); }
+        }
+
+        @keyframes node-pulse-3 {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.18); filter: brightness(1.3) drop-shadow(0 0 4px #10b981); }
+        }
+
+        @keyframes node-pulse-core {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.1); filter: brightness(1.2) drop-shadow(0 0 6px #ffffff); }
+        }
+
+        /* Title container and status */
+        .brand-text-container {
+            display: flex;
+            flex-direction: column;
         }
 
         .brand-title {
-            font-size: 1.65rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            letter-spacing: -1.5px;
-            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            letter-spacing: -1.2px;
+            background: linear-gradient(120deg, #ffffff 0%, #38bdf8 35%, #818cf8 70%, #ffffff 100%);
+            background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            animation: title-gradient 12s ease infinite alternate, title-breathing 4s ease-in-out infinite alternate;
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            line-height: 1.1;
+        }
+
+        .brand-title::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-25deg);
+            animation: light-sweep 22s cubic-bezier(0.3, 1, 0.2, 1) infinite;
+        }
+
+        @keyframes title-gradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        @keyframes title-breathing {
+            0% { filter: brightness(1.0); }
+            100% { filter: brightness(1.12); }
+        }
+
+        @keyframes light-sweep {
+            0% { left: -150%; }
+            6% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        /* Live Status Indicator */
+        .brand-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 1px;
+            opacity: 0.85;
+            font-weight: 500;
+        }
+
+        .status-pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #10b981;
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+            animation: status-pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes status-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 4px rgba(16, 185, 129, 0.5); }
+            50% { transform: scale(1.25); box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); }
+            100% { transform: scale(1); box-shadow: 0 0 4px rgba(16, 185, 129, 0.5); }
+        }
+
+        /* Reduced Motion Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            .logo-animation-wrapper,
+            .svg-glow-circle,
+            .svg-outer-ring,
+            .svg-backbone-path,
+            .svg-node,
+            .brand-title,
+            .brand-title::after,
+            .status-pulse-dot {
+                animation: none !important;
+                transition: none !important;
+                stroke-dashoffset: 0 !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            #header-bg-canvas {
+                display: none !important;
+            }
         }
 
         /* Custom scrollbar */
@@ -557,11 +745,29 @@
     <div id="startup-screen">
         <div class="startup-logo-container">
             <svg class="startup-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="38" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8 6"/>
-                <circle cx="50" cy="50" r="22" stroke="#818cf8" stroke-width="3" stroke-dasharray="4 4"/>
-                <circle cx="50" cy="50" r="6" fill="#38bdf8"/>
-                <line x1="50" y1="12" x2="50" y2="88" stroke="#38bdf8" stroke-width="2" opacity="0.3"/>
-                <line x1="12" y1="50" x2="88" y2="50" stroke="#38bdf8" stroke-width="2" opacity="0.3"/>
+                <!-- Glow filter definitions -->
+                <defs>
+                    <radialGradient id="startupGlowGrad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
+                        <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="startupLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#818cf8"/>
+                        <stop offset="50%" stop-color="#38bdf8"/>
+                        <stop offset="100%" stop-color="#10b981"/>
+                    </linearGradient>
+                </defs>
+                <!-- Background Glow Layer -->
+                <circle cx="50" cy="50" r="35" class="svg-glow-circle" fill="url(#startupGlowGrad)" />
+                <!-- Outer Rotating Ring representing Neural Engine -->
+                <circle cx="50" cy="50" r="38" class="svg-outer-ring" stroke="#38bdf8" stroke-width="2" stroke-dasharray="10 8" />
+                <!-- Inner Tracing Protein Ribbon Path -->
+                <path d="M 25,65 C 20,40 35,20 50,20 C 65,20 80,40 75,65 C 70,80 50,85 50,65 C 50,45 35,35 50,35 C 65,35 60,65 50,65" class="svg-backbone-path" stroke="url(#startupLineGrad)" stroke-width="3" stroke-linecap="round" />
+                <!-- Molecular Core Nodes -->
+                <circle cx="50" cy="20" r="4.5" class="svg-node node-1" fill="#818cf8" />
+                <circle cx="25" cy="65" r="4.5" class="svg-node node-2" fill="#38bdf8" />
+                <circle cx="75" cy="65" r="4.5" class="svg-node node-3" fill="#10b981" />
+                <circle cx="50" cy="65" r="5.5" class="svg-node node-core" fill="#ffffff" />
             </svg>
         </div>
         <h1 class="startup-title">FoldNet</h1>
@@ -575,13 +781,51 @@
     <div class="container-fluid py-4 px-4 px-lg-5" id="main-content" style="opacity: 0;">
         
         <!-- Premium Top Navigation -->
-        <header class="comparison-nav pb-3">
-            <a href="#" class="comparison-brand">
-                <img src="/static/logo.png" alt="FoldNet" class="brand-logo">
-                <span class="brand-title">FoldNet</span>
+        <header class="comparison-nav pb-3" id="premium-header">
+            <!-- Subtle Canvas Particles Background for the logo -->
+            <canvas id="header-bg-canvas"></canvas>
+            
+            <a href="#" class="comparison-brand" id="brand-link">
+                <!-- Inline Animated SVG Logo Wrapper -->
+                <div class="logo-animation-wrapper" id="logo-wrapper">
+                    <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Glow filter definitions -->
+                        <defs>
+                            <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
+                                <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#818cf8"/>
+                                <stop offset="50%" stop-color="#38bdf8"/>
+                                <stop offset="100%" stop-color="#10b981"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Background Glow Layer -->
+                        <circle cx="50" cy="50" r="35" class="svg-glow-circle" fill="url(#glowGrad)" />
+                        <!-- Outer Rotating Ring representing Neural Engine -->
+                        <circle cx="50" cy="50" r="38" class="svg-outer-ring" stroke="#38bdf8" stroke-width="2" stroke-dasharray="10 8" />
+                        <!-- Inner Tracing Protein Backbone Ribbon Path -->
+                        <path d="M 25,65 C 20,40 35,20 50,20 C 65,20 80,40 75,65 C 70,80 50,85 50,65 C 50,45 35,35 50,35 C 65,35 60,65 50,65" class="svg-backbone-path" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" />
+                        <!-- Molecular Core Nodes -->
+                        <circle cx="50" cy="20" r="4.5" class="svg-node node-1" fill="#818cf8" />
+                        <circle cx="25" cy="65" r="4.5" class="svg-node node-2" fill="#38bdf8" />
+                        <circle cx="75" cy="65" r="4.5" class="svg-node node-3" fill="#10b981" />
+                        <circle cx="50" cy="65" r="5.5" class="svg-node node-core" fill="#ffffff" />
+                    </svg>
+                </div>
+                
+                <!-- Text Container with Title + Pulse Status -->
+                <div class="brand-text-container">
+                    <span class="brand-title">FoldNet</span>
+                    <div class="brand-status">
+                        <span class="status-pulse-dot"></span>
+                        <span class="status-text">Protein Intelligence Active</span>
+                    </div>
+                </div>
             </a>
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 border border-info border-opacity-25 rounded-pill">
+            <div class="d-flex align-items-center gap-3" style="position: relative; z-index: 10;">
+                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 border border-info border-opacity-25 rounded-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.5px;">
                     <i class="fa-solid fa-square-poll-vertical me-1"></i> Scientific Analysis Workspace
                 </span>
                 <button class="btn btn-sm btn-outline-light rounded-circle" id="btn-help" title="Documentation Help" style="width: 32px; height: 32px; padding: 0;">
@@ -995,6 +1239,123 @@
     <!-- Bootstrap & Page Script -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/comparison.js"></script>
-</body>
+    
+    <!-- Premium Interactive Header Script -->
+    <script>
+        $(document).ready(function() {
+            const canvas = document.getElementById('header-bg-canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let width = canvas.width = canvas.offsetWidth;
+                let height = canvas.height = canvas.offsetHeight;
 
+                // Handle resize
+                window.addEventListener('resize', () => {
+                    if (canvas.offsetWidth > 0 && canvas.offsetHeight > 0) {
+                        width = canvas.width = canvas.offsetWidth;
+                        height = canvas.height = canvas.offsetHeight;
+                    }
+                });
+
+                // Particle nodes list
+                const particles = [];
+                const maxParticles = 20;
+
+                for (let i = 0; i < maxParticles; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: (Math.random() - 0.5) * 0.15,
+                        vy: (Math.random() - 0.5) * 0.15,
+                        radius: Math.random() * 2 + 1,
+                        alpha: Math.random() * 0.5 + 0.2
+                    });
+                }
+
+                let mouseX = 0;
+                let mouseY = 0;
+                let targetX = 0;
+                let targetY = 0;
+
+                // Mouse interaction parallax
+                $('#premium-header').on('mousemove', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    targetX = (e.clientX - rect.left - width / 2) * 0.05;
+                    targetY = (e.clientY - rect.top - height / 2) * 0.05;
+                });
+
+                $('#premium-header').on('mouseleave', () => {
+                    targetX = 0;
+                    targetY = 0;
+                });
+
+                function animate() {
+                    ctx.clearRect(0, 0, width, height);
+
+                    // Smooth transition for parallax offset
+                    mouseX += (targetX - mouseX) * 0.08;
+                    mouseY += (targetY - mouseY) * 0.08;
+
+                    // Update & Draw nodes
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+
+                        // Boundary collision
+                        if (p.x < 0 || p.x > width) p.vx *= -1;
+                        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                        ctx.beginPath();
+                        ctx.arc(p.x + mouseX, p.y + mouseY, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
+                        ctx.fill();
+                    });
+
+                    // Draw connections
+                    ctx.beginPath();
+                    for (let i = 0; i < maxParticles; i++) {
+                        for (let j = i + 1; j < maxParticles; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+
+                            if (dist < 80) {
+                                const opacity = (1 - dist / 80) * 0.15;
+                                ctx.moveTo(particles[i].x + mouseX, particles[i].y + mouseY);
+                                ctx.lineTo(particles[j].x + mouseX, particles[j].y + mouseY);
+                                ctx.strokeStyle = `rgba(56, 189, 248, ${opacity})`;
+                            }
+                        }
+                    }
+                    ctx.stroke();
+
+                    requestAnimationFrame(animate);
+                }
+
+                // Parallax shift on the brand logo
+                $('#premium-header').on('mousemove', (e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const dx = (e.clientX - centerX) * 0.015;
+                    const dy = (e.clientY - centerY) * 0.015;
+                    
+                    $('#logo-wrapper').css({
+                        'transform': `translate(${dx}px, ${dy}px)`,
+                        'filter': `drop-shadow(${ -dx * 2 }px ${ -dy * 2 + 6 }px 16px rgba(56, 189, 248, 0.25))`
+                    });
+                });
+
+                $('#premium-header').on('mouseleave', () => {
+                    $('#logo-wrapper').css({
+                        'transform': 'translate(0px, 0px)',
+                        'filter': 'drop-shadow(0 4px 12px rgba(56, 189, 248, 0.15))'
+                    });
+                });
+
+                animate();
+            }
+        });
+    </script>
+</body>
 </html>
