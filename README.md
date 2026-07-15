@@ -8,7 +8,6 @@
   [![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
   [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-  [![Aesthetics: Premium](https://img.shields.io/badge/Aesthetics-Cinematic-ff69b4.svg?style=for-the-badge)](https://github.com/Yuyutsu01/FoldNet)
 
   ---
 
@@ -16,7 +15,9 @@
 
 </div>
 
-## Cinematic Intelligence Dashboard
+---
+
+## 📺 Cinematic Intelligence Dashboard
 
 Experience the future of protein analysis with our custom-built, high-performance UI. Built with **FastAPI**, **React-patterns**, and **Glassmorphism**, it offers a premium SaaS-like experience for researchers.
 
@@ -25,14 +26,14 @@ Experience the future of protein analysis with our custom-built, high-performanc
 </p>
 
 ### Dashboard Highlights
-- **Real-time Inference**: Process sequences instantly with our optimized ESM-2 + FoldNet pipeline.
-- **Multi-Dimensional Visualization**: Interactive Plotly-powered heatmaps for contact probabilities and color-coded secondary structure bars.
-- **Historical Archives**: Explore the CB513 test set with ground-truth comparisons and structural delta maps.
-- **Performance Analytics**: Integrated benchmarking suite to compare CNN, BiLSTM, and Transformer backbones.
+*   **Real-time Inference**: Process sequences instantly with our optimized ESM-2 + FoldNet pipeline.
+*   **Multi-Dimensional Visualization**: Interactive Plotly-powered heatmaps for contact probabilities and color-coded secondary structure bars.
+*   **Historical Archives**: Explore the CB513 test set with ground-truth comparisons and structural delta maps.
+*   **Performance Analytics**: Integrated benchmarking suite to compare CNN, BiLSTM, and Transformer backbones.
 
 ---
 
-## Key Features
+## 🚀 Key Features
 
 <table align="center" style="border-collapse: collapse; border: none;">
   <tr>
@@ -44,7 +45,7 @@ Experience the future of protein analysis with our custom-built, high-performanc
     <td align="center" width="33%" style="border: none;">
       <img src="https://img.icons8.com/fluency/96/dna-helix.png" width="48" /><br>
       <h3>Multi-Task Logic</h3>
-      <p>Dual-head architecture predicting <b>3-class Secondary Structure</b> and <b>Contact Maps</b> (< 8Å) in parallel.</p>
+      <p>Dual-head architecture predicting <b>3-class Secondary Structure</b> and <b>Contact Maps</b> (&le; 8Å) in parallel.</p>
     </td>
     <td align="center" width="33%" style="border: none;">
       <img src="https://img.icons8.com/fluency/96/line-chart.png" width="48" /><br>
@@ -56,9 +57,9 @@ Experience the future of protein analysis with our custom-built, high-performanc
 
 ---
 
-## Neural Architecture
+## 🧬 Neural Architecture
 
-FoldNet utilizes a sophisticated hybrid architecture combining Transformer-based sequence representations with specialized 1D and 2D convolutional heads for local and global structural modeling.
+FoldNet utilizes a hybrid architecture combining Transformer-based sequence representations with specialized 1D and 2D convolutional heads for local and global structural modeling.
 
 ```mermaid
 graph TD
@@ -87,7 +88,7 @@ graph TD
 
 ---
 
-## Performance Benchmarks
+## 📊 Performance Benchmarks
 
 Evaluated on the **CB513** test set, FoldNet demonstrates competitive performance across multiple specialized backbones.
 
@@ -102,15 +103,18 @@ Evaluated on the **CB513** test set, FoldNet demonstrates competitive performanc
 
 ---
 
-## Installation & Setup
+## 🛠️ Installation & Setup
 
 ### 1. Prerequisites
-- **OS**: Windows 10+, Ubuntu 20.04+, or macOS.
-- **Python**: 3.9 - 3.11.
-- **Hardware**: NVIDIA GPU (8GB+ VRAM) is recommended for ESM-2 inference.
-- **Disk**: ~5GB for model weights and dataset cache.
+*   **OS**: Windows 10+, Ubuntu 20.04+, or macOS.
+*   **Python**: 3.9 - 3.11.
+*   **Hardware**: NVIDIA GPU (8GB+ VRAM) is recommended for ESM-2 inference.
+*   **Disk**: ~5GB for model weights and dataset cache.
 
-### 2. Quick Install
+---
+
+### 2. Local Setup (PowerShell / Bash)
+
 ```bash
 # Clone the repository
 git clone https://github.com/Yuyutsu01/FoldNet.git
@@ -122,37 +126,62 @@ source venv/bin/activate  # Windows: .\venv\Scripts\activate
 
 # Install core dependencies
 pip install -r requirements.txt
-```
 
-### 3. Launch the Intelligence Dashboard
-```bash
 # Start the FastAPI-powered backend
-uvicorn viewer.app:app --reload --port 8000
+python -m uvicorn viewer.app:app --reload --port 8000
 ```
 Then navigate to: **[http://localhost:8000](http://localhost:8000)**
 
-> [!IMPORTANT]
-> On the first prediction, FoldNet will automatically download the **ESM-2 (650M)** model weights from Meta's servers. This is a one-time process requiring ~2.5GB of bandwidth.
+---
+
+### 3. Docker Deployment Setup (Recommended)
+
+Docker deployment is optimized to use CPU-only wheels inside the container to minimize size (~150MB PyTorch footprint instead of ~3GB) and persist model cache weights on the host machine.
+
+```bash
+# Build and run using Docker Compose
+docker compose up --build -d
+
+# Check logs to verify server startup
+docker compose logs -f
+```
+The dashboard is accessible on the host port: **[http://localhost:8000](http://localhost:8000)**
 
 ---
 
-## Project Ecosystem
+## 📁 Project Ecosystem
 
 ```text
 FoldNet/
-├── foldnet/         # Core Neural Architecture & Loss Functions
-├──  data/            # Preprocessing & Dashboard JSON Caches
-├──  scripts/          # Training Pipelines & Benchmarking Tools
-├── ️ viewer/           # Premium Glassmorphic Dashboard
-│   ├── app.py          # FastAPI Logic & Inference Engine
-│   └── static/         # React-Logic (app.js) & Futuristic Styles
-├──  configs/         # YAML Experiment Configurations
-└──  run.py           # Unified CLI Entry Point
+├── foldnet/              # Core Neural Architecture & Loss Functions
+│   ├── data/             # Dataset Loaders & Preprocessing pipelines
+│   ├── models/           # Encoders, Heads, Loss modules, and Train tasks
+│   └── evaluation/       # Performance evaluation metrics and plots
+├── configs/              # YAML Experiment Configurations
+├── docs/                 # Reference guides & developer manuals
+├── results/              # Saved model checkpoints and log metrics
+├── viewer/               # Premium Glassmorphic Dashboard
+│   ├── app.py            # FastAPI Logic & Inference Engine
+│   └── static/           # HTML templates & Plotly/3Dmol.js JavaScript integrations
+├── Dockerfile            # Container configuration file
+├── docker-compose.yml    # Multi-container volume mounting layout
+├── run.py                # Unified CLI Entry Point
+└── requirements.txt      # Project dependencies
 ```
 
 ---
 
-## Roadmap
+## 📚 Technical Handbooks & Guides
+
+For deep structural biology context, code trace walkthroughs, and team management details:
+*   [foldnet_developer_handbook.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/foldnet_developer_handbook.md) — Line-by-line model walkthroughs and configurations.
+*   [foldnet_viva_handbook.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/foldnet_viva_handbook.md) — Comprehensive research viva study guide and Q&A handbook.
+*   [evaluation_and_workflow.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/evaluation_and_workflow.md) — Details on Q3 accuracy, Matthews Correlation Coefficient, Precision@L, and metrics systems.
+*   [team_collaboration.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/team_collaboration.md) — Responsibility matrices (RACI), timelines, WBS, and Git workflows.
+
+---
+
+## 🗺️ Roadmap
 - [ ] **3D Cartesian Head**: Direct coordinate regression for PDB generation.
 - [ ] **Multi-Chain Support**: Interaction modeling for protein-protein complexes.
 - [ ] **Edge Deployment**: Quantized ESM-2 for browser-based local inference.
