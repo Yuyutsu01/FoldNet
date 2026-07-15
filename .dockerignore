@@ -1,0 +1,24 @@
+# Exclude local virtual environments
+venv/
+.venv/
+env/
+
+# Exclude python cache files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Exclude IDE and metadata folders
+.git/
+.gitignore
+.idea/
+.vscode/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Exclude unnecessary outputs and logs to keep image sizes small
+results/logs/
+results/visualisations/
+data/processed/_pdb_cache/

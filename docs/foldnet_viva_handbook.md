@@ -4,84 +4,87 @@ This handbook serves as the ultimate study guide and documentation for FoldNet. 
 
 ---
 
-## Chapter 1: Project Overview & Biological Foundations
+## Chapter 1: Vision, Motivation, and Core Biology
 
-### 1.1 The Core Biological Problem
-A protein's function is dictated by its three-dimensional tertiary structure ($\text{3D}$ shape). However, while determining the amino acid sequence of a protein is cheap and fast (via DNA sequencing), determining its experimental $3\text{D}$ structure (via X-ray crystallography, NMR spectroscopy, or Cryo-EM) is extremely expensive, time-consuming, and labor-intensive. 
+### 1.1 Why FoldNet Exists
+A protein's biological function is determined by its three-dimensional tertiary structure ($\text{3D}$ shape). However, while determining the amino acid sequence of a protein is cheap and fast (via DNA sequencing), determining its experimental $3\text{D}$ structure (via X-ray crystallography, NMR spectroscopy, or Cryo-EM) is extremely expensive, time-consuming (often taking months), and labor-intensive. 
 
 This gap between known sequences and known structures is the **Protein Folding Problem**. FoldNet solves a critical subset of this problem: predicting **Secondary Structure** (local 1D conformations) and **Contact Maps** (2D pairwise spatial relationships) directly from amino acid sequences without relying on expensive physical experiments.
 
-```mermaid
-graph TD
-    Seq[Amino Acid Sequence] --> PLM[ESM-2 Embeddings]
-    PLM --> Encoder[CNN / BiLSTM / Transformer]
-    Encoder --> Head1[Secondary Structure Head]
-    Encoder --> Head2[2D Contact Map Head]
-    Head1 --> Pred1[Helix / Sheet / Coil]
-    Head2 --> Pred2[2D Binary Matrix]
+### 1.2 Limitations of Alternative Methods
+*   **AlphaFold / AlphaFold2**: While highly accurate, AlphaFold is computationally heavy. It relies heavily on constructing Multiple Sequence Alignments (MSAs) from massive sequence databases (like BFD, UniRef), which can take minutes to hours per query, making real-time interactive inference impossible.
+*   **ESMFold / OmegaFold**: Although they bypass MSAs using protein language models (PLMs) to predict coordinates, their fully-autoregressive or frame-matching structure modules have a massive memory footprint, scaling quadratically $O(L^2)$ or cubically $O(L^3)$ in memory and time.
+*   **FoldNet Solution**: By framing structure prediction as a multi-task learning task (1D secondary classification and 2D contact mapping) using frozen PLM embeddings, FoldNet provides instantaneous inference in under 30ms, making it ideal for web-based dashboard visualizers and high-throughput virtual screening.
+
+### 1.3 Why 1D Secondary Structure + 2D Contact Maps?
+Instead of predicting raw 3D Cartesian coordinates (which requires dealing with translation and rotation invariance, and is highly sensitive to coordinate frame alignment), FoldNet predicts **2D contact maps**. 
+*   **Rotational and Translational Invariance**: A 2D contact matrix is invariant to global rotations and translations of the protein.
+*   **Constraint Satisfaction**: 2D contact maps represent physical distance constraints. These constraints can be directly fed into classical distance geometry algorithms (like CNS or Rosetta) to reconstruct the physical 3D backbone.
+*   **Multi-Task Synergy**: Training secondary structure classification and contact mapping in parallel forces the hidden representations to capture both local folding patterns (helices/strands) and global topology (contacts).
+
+### 1.4 Biological Hierarchy Checklist
+1.  **Primary Structure**: The linear sequence of amino acids linked by covalent peptide bonds.
+2.  **Secondary Structure**: Local structural conformations stabilized by hydrogen bonds between backbone amine ($\text{N-H}$) and carbonyl ($\text{C=O}$) groups.
+    *   **Alpha-Helix ($\text{H}$)**: A right-handed spiral where hydrogen bonds form every $i \rightarrow i+4$ residues.
+    *   **Beta-Sheet ($\text{E}$)**: Parallel or anti-parallel sheets of peptide strands stabilized by lateral hydrogen bonds.
+    *   **Coil ($\text{C}$)**: Irregular, flexible loops connecting helices and sheets.
+3.  **Tertiary Structure**: The overall $3\text{D}$ folding of a single polypeptide chain, driven by hydrophobic interactions, disulfide bonds, and electrostatic attractions.
+4.  **Quaternary Structure**: The spatial arrangement of multiple polypeptide subunits.
+5.  **C$\alpha$ and C$\beta$ Atoms**: The central carbon of each amino acid backbone is the alpha carbon ($\text{C}_\alpha$). The side chain branches from the beta carbon ($\text{C}_\beta$, except for Glycine which has only a hydrogen atom). Distance measurements for contact maps are typically taken between $\text{C}_\beta$ (or $\text{C}_\alpha$ for Glycine) atoms to represent side-chain orientation.
+6.  **RMSD (Root-Mean-Square Deviation)**: The measure of the average distance between the atoms of two superimposed structures:
+    $$\text{RMSD} = \sqrt{\frac{1}{N}\sum_{i=1}^N \|x_i - y_i\|^2}$$
+7.  **TM-score (Template Modeling Score)**: A length-independent metric for measuring structural similarity. Ranging from 0 to 1, a TM-score $> 0.5$ generally indicates that the proteins share the same fold.
+8.  **DSSP (Define Secondary Structure of Proteins)**: The gold-standard algorithm that parses atomic $3\text{D}$ coordinates from PDB files and assigns secondary structure labels based on hydrogen-bonding energy heuristics:
+    $$E = q_1 q_2 \left( \frac{1}{r_{ON}} + \frac{1}{r_{CH}} - \frac{1}{r_{OH}} - \frac{1}{r_{CN}} \right) \times 332 \text{ kcal/mol}$$
+    A hydrogen bond is assigned if $E < -0.5 \text{ kcal/mol}$.
+
+---
+
+## Chapter 2: The Dataset & Data Preprocessing
+
+### 2.1 Dataset Sources & Properties
+*   **CullPDB**: Used for model training. It is a high-resolution, non-redundant subset of the Protein Data Bank (PDB) curated by the PISCES server.
+*   **CB513**: The gold-standard benchmark test set containing 514 non-redundant proteins, used to measure final generalization performance.
+*   **Sequence Redundancy Control**: To prevent data leakage, training sequences in CullPDB are filtered to have **less than 25% sequence identity** with any sequence in the CB513 test set. This ensures that the model cannot achieve high scores through memorization of homologous sequences.
+
+| Metric / Property | CullPDB Dataset | CB513 Dataset |
+| :--- | :--- | :--- |
+| **Total Proteins** | ~5,926 | 514 |
+| **Min / Max Length** | 30 / 700 | 30 / 700 |
+| **Average Sequence Length** | ~200 residues | ~190 residues |
+| **Sequence Identity Limit** | < 25% | Test set baseline |
+
+### 2.2 Data Preprocessing Pipeline
+
+The step-by-step pipeline transforms raw PDB structural data into static features for training:
+
+```
+[Raw PDB Files] 
+       │
+       ▼ (Bio.PDB Parsing)
+[Extract Atom Coordinates] ──► Generate DSSP Labels ──► Classify 3-Class Q3 (H, E, C)
+       │
+       ▼ (Pairwise L2 Distances)
+[Distance Matrix] ──► Threshold at <= 8.0 Å ──► Mask sequence separation < 6 residues ──► [2D Contact Map]
+       │
+       ▼ (Meta ESM-2 Inference)
+[Per-Residue 1280-dim Embeddings] ──► Save as NumPy arrays (.npy)
+       │
+       ▼
+[DataLoader Collation] ──► Pad variable lengths to max batch length ──► Apply Loss Masking.
 ```
 
-### 1.2 Structural Hierarchy of Proteins
-Proteins are polymers composed of repeating units called **amino acids** (also referred to as **residues**).
-1. **Primary Structure**: The linear sequence of amino acids linked by covalent peptide bonds.
-2. **Secondary Structure**: Local structural conformations stabilized by hydrogen bonds between backbone amine ($\text{N-H}$) and carbonyl ($\text{C=O}$) groups. The three major classes are:
-   - **Alpha-Helix ($\text{H}$)**: A right-handed spiral where hydrogen bonds form every $i \rightarrow i+4$ residues.
-   - **Beta-Sheet ($\text{E}$)**: Parallel or anti-parallel sheets of peptide strands stabilized by lateral hydrogen bonds.
-   - **Coil ($\text{C}$)**: Irregular, flexible loops connecting helices and sheets.
-3. **Tertiary Structure**: The overall $3\text{D}$ folding of a single polypeptide chain, driven by hydrophobic interactions, disulfide bonds, and electrostatic attractions.
-4. **Quaternary Structure**: The spatial arrangement of multiple polypeptide subunits.
-
-### 1.3 Secondary Structure & Contact Maps in FoldNet
-- **Why Secondary Structure matters**: It restricts the conformational search space for tertiary structure prediction and identifies structural motifs key to functional sites.
-- **Why Contact Maps matter**: A $2\text{D}$ contact map is a binary matrix $C \in \{0, 1\}^{L \times L}$ where $C_{i, j} = 1$ if residues $i$ and $j$ are spatially close in $3\text{D}$ space (typically within a distance threshold of $\le 8.0 \text{ \AA}$ between $\text{C}_\alpha$ atoms), and $0$ otherwise. Predicting contact maps is equivalent to predicting tertiary structure constraints.
-- **DSSP (Define Secondary Structure of Proteins)**: The gold-standard program that parses atomic $3\text{D}$ coordinates from PDB files and assigns secondary structure labels based on hydrogen-bonding energy heuristics.
-
-### Summary & Takeaways
-- **Key Concept**: Primary Sequence $\rightarrow$ PLM Embeddings $\rightarrow$ FoldNet Multi-Task Prediction (1D SS + 2D Contacts).
-- **Memory Trick**: **L**inked sequences make **Primary**, **H**ydrogen bonds make **Secondary**, **3D** folding makes **Tertiary**, **M**ultiple chains make **Quaternary**.
-- **Viva Question**: *Why predict contact maps instead of 3D coordinates directly?*
-  - **Answer**: 3D coordinate prediction is highly sensitive to global translation/rotation (non-Euclidean invariance). 2D contact maps are invariant to translation and rotation, making them mathematically easier and more stable to predict.
+#### Preprocessing Details:
+1.  **Coordinate Extraction**: Coordinates for all standard amino acids are extracted. We target the $\text{C}_\beta$ atom (or $\text{C}_\alpha$ for Glycine) to represent side-chain centers.
+2.  **Contact Map Generation**: Pairwise Euclidean distances are computed. Cells with distance $\le 8.0 \text{ \AA}$ are labeled `1.0` (contacts), others `0.0`.
+3.  **Local Contact Masking**: Residues close in primary sequence sequence-wise ($|i - j| < 6$) are forced to `0.0`. These local contacts represent trivial alpha-helical loops; masking them forces the model to focus on non-trivial tertiary folding patterns.
+4.  **Embedding Extraction**: The sequences are passed through the frozen **ESM-2** model to output $(L, 1280)$ embeddings.
 
 ---
 
-## Chapter 2: Machine Learning Foundations
+## Chapter 3: Deep Learning Architecture & Mathematical Formulations
 
-### 2.1 The ML Pipeline in FoldNet
-- **AI / ML / DL Hierarchy**: Artificial Intelligence is the broad umbrella of mimicking human intelligence; Machine Learning is the subset that learns from data without explicit programming; Deep Learning utilizes multi-layered neural networks.
-- **Representation Learning**: Instead of hand-crafting features (like amino acid charge or hydrophobicity), FoldNet utilizes pre-trained Protein Language Models (ESM-2) to extract high-dimensional semantic representations from raw sequence strings.
-- **Frozen Models & Transfer Learning**: The ESM-2 network is kept frozen (`requires_grad = False`). We freeze ESM-2 because:
-  1. It preserves the general biological knowledge learned from millions of protein sequences.
-  2. It drastically reduces GPU memory footprint and training time.
-  3. It prevents overfitting on our smaller labels dataset (e.g. `cb513`).
-
-### 2.2 Activation, Optimization & Loss Functions
-- **Weights ($W$) & Biases ($b$)**: Weights represent the strength of connections between layers, determining feature scaling; biases shift the activation function output.
-- **Activation Functions**:
-  - **ReLU (Rectified Linear Unit)**: $f(x) = \max(0, x)$. Introduces sparsity and solves the vanishing gradient problem. Used in FoldNet's CNN Residual blocks ([encoders.py:L10](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/encoders.py#L10)).
-  - **Sigmoid**: $\sigma(x) = \frac{1}{1 + e^{-x}}$. Maps raw logits to a $[0, 1]$ probability range. Used internally by the BCE loss function for contact mapping.
-  - **Softmax**: $\sigma(z)_i = \frac{e^{z_i}}{\sum e^{z_j}}$. Normalizes a vector of raw logits into a categorical probability distribution. Used to classify Helix/Sheet/Coil classes.
-- **Gradient Descent & Backpropagation**: Gradients of the loss with respect to all trainable parameters are calculated using the Chain Rule (backpropagation) and used by the **AdamW** optimizer to update weights.
-- **Regularization (Dropout & LayerNorm)**:
-  - **Dropout**: Randomly deactivates neurons during training with probability $p$, forcing the network to learn redundant representations and preventing co-adaptation of features.
-  - **Layer Normalization**: Normalizes inputs across the feature dimension for each token individually, stabilizing the hidden states and accelerating training. Used in the Transformer encoder ([encoders.py:L79](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/encoders.py#L79)).
-
-### 2.3 Evaluation Metrics
-- **Q3 Accuracy**: The percentage of residues for which the three-state secondary structure (Helix, Sheet, Coil) is predicted correctly:
-  $$\text{Q3} = \frac{\sum_{i=1}^3 \text{TP}_i}{N_{\text{total}}}$$
-- **Precision@L**: The percentage of true positive contacts among the top-$L$ predicted contacts (where $L$ is the protein sequence length). This is the standard metric in structural biology because proteins have $O(L^2)$ possible pairs, but only a sparse fraction are actual contacts.
-- **Matthew's Correlation Coefficient (MCC)**: Measures binary classification quality while accounting for severe class imbalances (more non-contacts than contacts).
-
-### Summary & Takeaways
-- **Key Concept**: Cross-Entropy evaluates categorical 1D labels; BCEWithLogitsLoss evaluates binary 2D pairwise contacts.
-- **Memory Trick**: **L**ayerNorm normalizes across **Features** (per token); **B**atchNorm normalizes across the **Batch** (per feature).
-- **Viva Question**: *Why is Accuracy a bad metric for contact maps, and why do we use Precision@L instead?*
-  - **Answer**: In a protein of length $L$, the contact matrix has $L^2$ cells. Less than $5\%$ of these are actual contacts. A model predicting all zeros would achieve $95\%$ accuracy. Precision@L evaluates only the top-$L$ predicted contact pairs, focusing only on the highest-confidence predictions where structural information resides.
-
----
-
-## Chapter 3: Deep Learning Architecture
-
-FoldNet supports three modular sequence encoders: **CNN**, **BiLSTM**, and **Transformer**.
+FoldNet supports three interchangeable sequence encoders: a 1D Residual CNN, a Bidirectional LSTM, and a Multi-Head Transformer.
 
 ```
 Input Features (batch, L, 1280)
@@ -101,241 +104,249 @@ TransformerEncoderLayer × 4      ResidualBlock1D × 5
            └─► ContactMapHead ──► Outer Concatenation ──► Conv2D ──► Contact Logits (batch, L, L)
 ```
 
-### 3.1 The Three Encoder Modules
-1. **CNN (Convolutional Neural Network)**:
-   - **Why used**: Captures local amino acid sequence patterns (e.g. finding a local window of hydrophobic residues indicative of an alpha-helix).
-   - **Implementation**: `CNNEncoder` ([encoders.py:L25](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/encoders.py#L25)) uses a 1D convolution to project the 1280-dim ESM embeddings to `hidden_dim`, followed by 5 residual 1D convolution blocks with kernel size 5.
-   - **Tensor shapes**:
-     - Input: $(B, L, 1280)$
-     - Transpose for 1D Conv: $(B, 1280, L)$
-     - After Input Projection: $(B, \text{hidden\_dim}, L)$
-     - After 5 Residual Blocks: $(B, \text{hidden\_dim}, L)$
-     - Transpose Back: $(B, L, \text{hidden\_dim})$
+### 3.1 1D Residual CNN Encoder
+*   **Convolution Operations**:
+    For an input tensor $X \in \mathbb{R}^{B \times d \times L}$ and kernel $W \in \mathbb{R}^{d \times d \times k}$, the 1D convolution at residue index $t$ is:
+    $$\text{Conv1D}(X)_t = \sum_{j=1}^{d} \sum_{m=-k/2}^{k/2} X_{j, t+m} W_{j, m} + b$$
+*   **Residual Blocks**:
+    Protects gradients from vanishing. The block maps:
+    $$Y = \text{ReLU}\left( \text{BN}\left( \text{Conv1D}\left( \text{ReLU}\left( \text{BN}\left( \text{Conv1D}(X) \right) \right) \right) \right) + X \right)$$
 
-2. **BiLSTM (Bidirectional Long Short-Term Memory)**:
-   - **Why used**: Tracks long-range directional dependencies in both N-to-C and C-to-N terminal directions.
-   - **Implementation**: `BiLSTMEncoder` ([encoders.py:L41](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/encoders.py#L41)) utilizes a bidirectional LSTM layer with `hidden_dim // 2` units per direction.
-   - **Tensor shapes**:
-     - Input: $(B, L, 1280)$
-     - Output: $(B, L, \text{hidden\_dim})$ (bidirectional outputs are concatenated along the last dimension).
+### 3.2 Bidirectional LSTM Encoder
+*   **Recurrence Equations**:
+    For each residue $t$, cell state $c_t$ and hidden state $h_t$ are updated using gates:
+    $$f_t = \sigma(W_f [h_{t-1}, x_t] + b_f) \quad \text{(Forget Gate)}$$
+    $$i_t = \sigma(W_i [h_{t-1}, x_t] + b_i) \quad \text{(Input Gate)}$$
+    $$\tilde{c}_t = \tanh(W_c [h_{t-1}, x_t] + b_c) \quad \text{(Candidate Cell State)}$$
+    $$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t \quad \text{(State Update)}$$
+    $$o_t = \sigma(W_o [h_{t-1}, x_t] + b_o) \quad \text{(Output Gate)}$$
+    $$h_t = o_t \odot \tanh(c_t) \quad \text{(Hidden Output)}$$
+*   The bidirectional LSTM concatenates forward and backward passes: $h_t^{\text{bi}} = [\vec{h}_t \,\|\, \overleftarrow{h}_t]$.
 
-3. **Transformer**:
-   - **Why used**: Captures global residue-to-residue context without directional bias via self-attention mechanism.
-   - **Implementation**: `TransformerEncoder` ([encoders.py:L74](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/encoders.py#L74)) projects embeddings, adds sinusoidal positional encodings, and routes through 4 Transformer encoder layers.
-   - **Tensor shapes**:
-     - Input: $(B, L, 1280)$
-     - After Projection: $(B, L, \text{hidden\_dim})$
-     - After Positional Encoding: $(B, L, \text{hidden\_dim})$
-     - Transformer Output: $(B, L, \text{hidden\_dim})$
+### 3.3 Transformer Encoder
+*   **Sinusoidal Positional Encodings**:
+    Added to input embeddings to preserve residue order:
+    $$\text{PE}(t, 2i) = \sin\left(\frac{t}{10000^{2i/d}}\right), \quad \text{PE}(t, 2i+1) = \cos\left(\frac{t}{10000^{2i/d}}\right)$$
+*   **Self-Attention**:
+    Queries ($Q$), Keys ($K$), and Values ($V$) are projected from sequence states:
+    $$\text{Attention}(Q, K, V) = \text{Softmax}\left( \frac{Q K^T}{\sqrt{d_k}} \right) V$$
+    The scale factor $\sqrt{d_k}$ prevents dot products from growing too large in high dimensions, which would cause the softmax function to enter regions with extremely small gradients.
 
-### 3.2 Output Heads & Tensor Shapes
-1. **Secondary Structure Head**:
-   - A single linear projection layer: `self.classifier = nn.Linear(hidden_dim, num_classes)` ([heads.py:L8](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/heads.py#L8)).
-   - **Tensors**: Maps $(B, L, \text{hidden\_dim})$ to $(B, L, 3)$ logits.
-
-2. **Contact Map Head (Outer Concatenation)**:
-   - **Why needed**: Translates 1D residue embeddings into 2D pairwise interaction maps.
-   - **Outer Concatenation (Outer-Cat)**: For every pair $(i, j)$, we concatenate the embedding of residue $i$ with residue $j$.
-   - **Implementation**:
-     ```python
-     # x shape: (B, L, d)
-     x_i = x.unsqueeze(2).expand(-1, -1, L, -1)  # (B, L, L, d)
-     x_j = x.unsqueeze(1).expand(-1, L, -1, -1)  # (B, L, L, d)
-     pairwise_features = torch.cat([x_i, x_j], dim=-1)  # (B, L, L, 2*d)
-     ```
-   - **Tensor shapes**:
-     - Outer Concatenation: $(B, L, L, 2 \times \text{hidden\_dim})$
-     - Permuted for 2D Conv: $(B, 2 \times \text{hidden\_dim}, L, L)$
-     - After Input 2D Conv: $(B, 64, L, L)$
-     - After 5 2D Residual Blocks: $(B, 64, L, L)$
-     - After Output 2D Conv: $(B, 1, L, L)$
-     - Squeezed logits: $(B, L, L)$
-
-### Summary & Takeaways
-- **Key Concept**: 1D sequence representations are projected into a 2D pairwise feature space using outer concatenation before running 2D residual convolutions.
-- **Memory Trick**: `unsqueeze(2)` expands column-wise; `unsqueeze(1)` expands row-wise. Concatenating them forms a grid.
-- **Viva Question**: *What is the purpose of Positional Encoding in the Transformer encoder?*
-  - **Answer**: Transformers do not have built-in recurrence or convolution, meaning they process tokens in parallel. Without positional encoding, the model would treat the sequence as a bag-of-words (position-invariant). Positional encoding injects ordering information.
+### 3.4 Contact Map Head (Outer Concatenation)
+To translate 1D residue-level sequence embeddings into 2D pairwise interaction maps, FoldNet uses **Outer Concatenation**:
+1.  Let $H \in \mathbb{R}^{B \times L \times d}$ be the latent state sequence.
+2.  Expand $H$ column-wise to form $H_{\text{row}} \in \mathbb{R}^{B \times L \times L \times d}$ and row-wise to form $H_{\text{col}} \in \mathbb{R}^{B \times L \times L \times d}$.
+3.  Concatenate them along the channel dimension:
+    $$\mathbf{P}_{i,j} = [h_i \,\|\, h_j] \in \mathbb{R}^{B \times L \times L \times 2d}$$
+4.  Permute to shape $(B, 2d, L, L)$ and apply 2D Residual convolutions to predict pairwise logits.
 
 ---
 
-## Chapter 4: Mathematical Derivations
+## Chapter 4: Multi-Task Losses and Optimization
 
-### 4.1 Cross Entropy Loss (Secondary Structure)
-For a single residue, the loss is:
-$$\mathcal{L}_{\text{SS}} = - \log \left( \frac{e^{z_y}}{\sum_{j=1}^3 e^{z_j}} \right) = -z_y + \log \left( \sum_{j=1}^3 e^{z_j} \right)$$
-Where $z$ is the logit vector, and $y$ is the ground-truth index.
+### 4.1 Loss Functions & Masking
+FoldNet is optimized using a weighted multi-task loss:
+$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{SS}} + \lambda_{\text{contact}} \mathcal{L}_{\text{contact}}$$
 
-**Gradient Derivation**:
-Let $p_i = \text{Softmax}(z)_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$.
-1. **Case 1: $i = y$** (target class)
-   $$\frac{\partial \mathcal{L}}{\partial z_y} = \frac{\partial}{\partial z_y} \left( -z_y + \log \sum_j e^{z_j} \right) = -1 + \frac{e^{z_y}}{\sum_j e^{z_j}} = p_y - 1$$
-2. **Case 2: $i \neq y$** (non-target classes)
-   $$\frac{\partial \mathcal{L}}{\partial z_i} = \frac{\partial}{\partial z_i} \left( \log \sum_j e^{z_j} \right) = \frac{e^{z_i}}{\sum_j e^{z_j}} = p_i$$
-Thus, the gradient vector is simply $\mathbf{p} - \mathbf{y}$ where $\mathbf{y}$ is the one-hot target vector.
+#### 1D Cross-Entropy Loss ($\mathcal{L}_{\text{SS}}$)
+Evaluates secondary structure predictions. Padded residues are assigned a target label of `-1` and skipped using PyTorch's `ignore_index=-1` option:
+$$\mathcal{L}_{\text{SS}} = - \frac{1}{N_{\text{valid}}} \sum_{i \in \text{valid}} \log \left( \frac{e^{z_{i, y_i}}}{\sum_{j=1}^3 e^{z_{i, j}}} \right)$$
 
-### 4.2 Binary Cross Entropy with Logits Loss (Contact Maps)
-For a single contact cell $(i, j)$ with logit $z$ and ground-truth label $y \in \{0, 1\}$:
-$$\mathcal{L}_{\text{BCE}} = -y \log \sigma(z) - (1-y) \log(1 - \sigma(z))$$
-Substitute $\sigma(z) = \frac{1}{1 + e^{-z}}$:
-$$\mathcal{L}_{\text{BCE}} = z - yz + \log(1 + e^{-z})$$
-This formulation avoids numerical overflow from computing $\sigma(z)$ directly.
+*   **Mathematical Gradient Derivation**:
+    Let $p_j = \frac{e^{z_j}}{\sum_k e^{z_k}}$ be the softmax probability.
+    *   If $j = y$ (the true target class):
+        $$\frac{\partial \mathcal{L}_{\text{SS}}}{\partial z_y} = \frac{\partial}{\partial z_y} \left( -z_y + \log \sum_k e^{z_k} \right) = -1 + \frac{e^{z_y}}{\sum_k e^{z_k}} = p_y - 1$$
+    *   If $j \neq y$ (non-target classes):
+        $$\frac{\partial \mathcal{L}_{\text{SS}}}{\partial z_j} = \frac{\partial}{\partial z_j} \left( \log \sum_k e^{z_k} \right) = \frac{e^{z_j}}{\sum_k e^{z_k}} = p_j$$
+    *   Thus, the gradient simplifies to $\mathbf{p} - \mathbf{y}$ (predicted probability vector minus the one-hot target vector).
 
-### 4.3 Self-Attention Equation
-Given a sequence representation $X \in \mathbb{R}^{L \times d}$:
-$$Q = XW_Q, \quad K = XW_K, \quad V = XW_V$$
-$$\text{Attention}(Q, K, V) = \text{Softmax}\left( \frac{QK^T}{\sqrt{d_k}} \right)V$$
-- **$\sqrt{d_k}$ Scaling Factor**: Keeps the dot products from growing excessively large in high dimensions, preventing the Softmax gradients from vanishing.
+#### 2D Masked Binary Cross-Entropy Loss ($\mathcal{L}_{\text{contact}}$)
+To prevent padding regions in batched tensors from corrupting the contact map gradients, we compute a 2D Boolean mask:
+$$\text{Mask}_{2\text{D}} = (1 - \text{Mask}_{\text{pad}}) \otimes (1 - \text{Mask}_{\text{pad}})^T$$
+$$\text{where } \text{Mask}_{\text{pad}} \in \{0, 1\}^L \text{ flags padded residues.}$$
+$$\mathcal{L}_{\text{contact}} = - \frac{1}{N_{\text{pairs}}} \sum_{i,j \in \text{Mask}_{2\text{D}}} \left[ y_{i,j} \log \sigma(z_{i,j}) + (1-y_{i,j}) \log(1 - \sigma(z_{i,j})) \right]$$
 
-### 4.4 LSTM Equations
-For time step $t$, input vector $x_t$, and previous state $h_{t-1}, c_{t-1}$:
-$$f_t = \sigma(W_f [h_{t-1}, x_t] + b_f) \quad \text{(Forget Gate)}$$
-$$i_t = \sigma(W_i [h_{t-1}, x_t] + b_i) \quad \text{(Input Gate)}$$
-$$\tilde{c}_t = \tanh(W_c [h_{t-1}, x_t] + b_c) \quad \text{(Candidate State)}$$
-$$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t \quad \text{(Cell State Update)}$$
-$$o_t = \sigma(W_o [h_{t-1}, x_t] + b_o) \quad \text{(Output Gate)}$$
-$$h_t = o_t \odot \tanh(c_t) \quad \text{(Hidden State Update)}$$
-
-### Summary & Takeaways
-- **Key Concept**: Gradients of Cross-Entropy simplify to probability minus label ($P - Y$).
-- **Memory Trick**: LSTM gates are always sigmoid ($\sigma \in [0, 1]$), while states are squashed using $\tanh \in [-1, 1]$.
-- **Viva Question**: *Why does AdamW split weight decay from the gradient update?*
-  - **Answer**: In standard Adam, weight decay is applied to the rolling gradient averages (L2 regularization). In AdamW, weight decay is subtracted directly from the weights, restoring the correct mathematical formulation of L2 regularization for adaptive gradient methods.
+### 4.2 Optimization Details
+*   **AdamW Weight Decay**: Weight decay is decoupled from the gradient updates, regularizing weights directly:
+    $$\theta_{t+1} = \theta_t - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} + \lambda_{\text{wd}} \theta_t \right)$$
+*   **Warmup and Cosine Scheduler**:
+    A 5-epoch linear warmup linearly increases the learning rate to prevent early training instability, followed by cosine annealing:
+    $$\eta_t = \eta_{\text{min}} + \frac{1}{2}(\eta_{\text{max}} - \eta_{\text{min}})\left(1 + \cos\left(\frac{T_{\text{cur}}}{T_{\text{max}}}\pi\right)\right)$$
+*   **Gradient Accumulation**: To fit effective large batches (size = 16) into limited VRAM, we accumulate gradients over 4 backward steps before calling `optimizer.step()`.
 
 ---
 
-## Chapter 5: FoldNet Code Walkthrough & Training Pipeline
+## Chapter 5: Complete Code Flow and Tensor Shape Tracing
 
-### 5.1 Project Folder Structure
-```
-FoldNet-1/
-├── foldnet/
-│   ├── data/
-│   │   └── dataset.py       # Handles padding, masking, and loading ESM embeddings
-│   ├── models/
-│   │   ├── encoders.py      # CNN, BiLSTM, and Transformer encoder definitions
-│   │   ├── foldnet.py       # PyTorch Lightning core module (loss, forward, training loops)
-│   │   ├── heads.py         # Secondary structure and 2D contact prediction heads
-│   │   └── loss.py          # Custom losses (BCEWithLogitsLoss wrapper)
-│   └── utils/
-│       └── parser.py        # PDB parsing and DSSP labeling scripts
-├── run.py                   # Master script to trigger training and evaluation
-└── viewer/                  # UI workspace (FastAPI backend + 3Dmol.js HTML dashboard)
-```
+### 5.1 Training Pipeline Code Flow
+The standard execution pipeline follows:
 
-### 5.2 Training Step Mechanics
-Look at `foldnet/models/foldnet.py` ([foldnet.py:L58](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/foldnet.py#L58)):
-```python
-    def training_step(self, batch, batch_idx):
-        features = batch['features']
-        ss_labels = batch['ss_labels']
-        contact_map = batch['contact_map']
-        mask = batch.get('mask', None)
-        
-        ss_logits, contact_probs = self(features, mask=mask)
-        
-        # Calculate SS Loss (ignore padding labels denoted by -1)
-        ss_loss = self.ss_criterion(ss_logits.view(-1, self.hparams.num_classes), ss_labels.view(-1))
-        
-        # Calculate Contact Loss with padding mask applied
-        raw_contact_loss = self.contact_criterion(contact_probs, contact_map.float())
-        if mask is not None:
-            real_mask = ~mask
-            mask_2d = real_mask.unsqueeze(1) & real_mask.unsqueeze(2)
-            contact_loss = raw_contact_loss[mask_2d].mean()
-        else:
-            contact_loss = raw_contact_loss.mean()
-        
-        total_loss = ss_loss + self.lambda_contact * contact_loss
-        return total_loss
+```
+run.py (Entry Point)
+   │
+   ▼ (YAML Parse)
+configs/baseline_cnn.yaml
+   │
+   ▼ (Instantiate Dataloaders)
+get_dataloaders() ──► ProteinDataset ──► collate_fn (Dynamic Padding)
+   │
+   ▼ (Init LightningModule)
+FoldNet (LightningModule)
+   │
+   ▼ (Loop Epochs)
+Trainer.fit() 
+   │   │
+   │   ├──► training_step() ──► Forward Pass ──► Loss Evaluation ──► backward() 
+   │   │                                                                 │ (Accumulate 4 batches)
+   │   │                                                                 ▼
+   │   │                                                          optimizer.step() & scheduler.step()
+   │   │
+   │   └──► validation_step() ──► Accumulate outputs ──► on_validation_epoch_end()
+   │                                                                 │
+   │                                                                 ▼
+   │                                                         Compute Q3, Precision@L
+   ▼ (Callback Checkpoint)
+Save results/checkpoints/best.ckpt ──► Log to TensorBoard/Wandb
 ```
 
-**Masking Mechanics**:
-- Proteins in a batch have varying lengths. We pad them to match the longest sequence.
-- We set padded positions in `ss_labels` to `-1`. PyTorch's CrossEntropyLoss is configured with `ignore_index=-1` to exclude them.
-- For contact map predictions, we construct a 2D mask using logical AND between 1D residue masks (`real_mask.unsqueeze(1) & real_mask.unsqueeze(2)`) to ignore padding interactions.
+### 5.2 Step-by-Step Tensor Shapes Trace
+The table below traces the dimensional changes of a batch ($B=4$, maximum sequence length $L=512$, and hidden projection size $d=512$):
 
-### Summary & Takeaways
-- **Key Concept**: Multi-task loss combines 1D classification and 2D pairwise BCE using a weighting scalar `lambda_contact` ([foldnet.py:L84](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/foldnet.py#L84)).
-- **Memory Trick**: `ignore_index=-1` blocks padded indices from contributing to gradient updates.
-- **Viva Question**: *Why do we calculate validation metrics only on unpadded residues?*
-  - **Answer**: Padded residues are artifacts of batch processing. Including them in accuracy (Q3) or contact precision calculations would artificially inflate or deflate the metrics depending on the padding ratio.
+| Stage / Layer | Tensor Name / Variable | Dimensions | Explanation |
+| :--- | :--- | :--- | :--- |
+| **Input Sequence** | `sequences` | List of $B$ strings | Raw amino acid strings |
+| **ESM Tokenizer** | `tokens` | $(B, L)$ | Integer indices mapped to dictionary |
+| **ESM-2 Embedding** | `features` | $(B, L, 1280)$ | Hidden representations from ESM-2 |
+| **Encoder Projection**| `x` | $(B, d, L)$ | Project 1280 to 512 channels, transpose for 1D Conv |
+| **1D ResNet Encoder** | `embeddings` | $(B, L, d)$ | Latent state representation |
+| **SS Head Classifier**| `ss_logits` | $(B, L, 3)$ | Output logits for 3 secondary structure classes |
+| **Outer Concat Row**  | `x_i` | $(B, L, L, d)$ | Duplicated horizontally |
+| **Outer Concat Col**  | `x_j` | $(B, L, L, d)$ | Duplicated vertically |
+| **Concat Pairwise**   | `pairwise_features` | $(B, L, L, 2d)$ | Combined features for each coordinate pair $(i, j)$ |
+| **Permuted 2D Conv**  | `pairwise_features` | $(B, 2d, L, L)$ | Permuted to match PyTorch 2D Conv format |
+| **2D Projection**     | `out` | $(B, 64, L, L)$ | Reduced from 1024 to 64 channels |
+| **2D ResNet Blocks**  | `out` | $(B, 64, L, L)$ | Spatial convolution feature processing |
+| **Output Projection** | `contact_logits` | $(B, L, L)$ | Squeezed logits (sigmoided in loss layer) |
 
 ---
 
-## Chapter 6: Visualizations & Inference Flow
+## Chapter 6: Python Files Architecture
 
-### 6.1 End-to-End Prediction Flow
-```
-User enters sequence in UI (e.g. "MGA...")
-        │
-        ▼
-FastAPI endpoint receives sequence
-        │
-        ▼
-ESM-2 extracts sequence embeddings
-        │
-        ▼
-FoldNet processes embeddings through active encoder & output heads
-        │
-        ▼
-Response JSON contains:
-- True SS / Pred SS (1D string)
-- Probabilities (Helix%, Sheet%, Coil%)
-- Contact Matrix (2D float arrays)
-        │
-        ▼
-JQuery & Plotly render:
-- 3Dmol.js Viewer (structures colored by SS)
-- Heatmap Matrix (contact probabilities)
-- Residue Details (compact stats & animation)
-```
-
-### 6.2 Frontend Architecture (WebGL & Doms)
-- **3Dmol.js**: A WebGL-based molecular viewer. It does not require a backend engine to render rotations/translations.
-- **Geometry Source**: Since FoldNet does not predict coordinates directly, the dashboard loads the matching **experimental coordinates** (PDB structures) to serve as a reference, overlaying the predicted secondary structures and contact map errors directly on the ground truth backbone geometry.
+### 6.1 Core Directory Layout
+*   [`foldnet/data/dataset.py`](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/data/dataset.py): Defines the `ProteinDataset` and `collate_fn`. Loads pre-extracted NumPy ESM-2 embeddings and processes 2D contact matrix `.npz` files.
+*   [`foldnet/models/encoders.py`](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/encoders.py): Implements sequence encoder backbones (`CNNEncoder` with residual 1D blocks, `BiLSTMEncoder` using bidirectionality, and `TransformerEncoder` using multi-head self-attention).
+*   [`foldnet/models/heads.py`](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/heads.py): Contains the prediction heads (`SecondaryStructureHead` projecting to 3 classes, and `ContactMapHead` implementing Outer Concatenation followed by a 2D ResNet).
+*   [`foldnet/models/foldnet.py`](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/foldnet/models/foldnet.py): The master PyTorch Lightning wrapper coordinating training steps, multi-task losses, validation loops, metric evaluation, and scheduler steps.
+*   [`viewer/app.py`](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/viewer/app.py): FastAPI backend providing prediction API routes (`/api/predict` and `/api/test_protein/{id}`) and static directory routing for the visual dashboard.
 
 ---
 
-## Chapter 7: Extensive Viva & Interview Q&A
+## Chapter 7: Evaluation Metrics & Research Benchmarks
 
-### 7.1 Beginner Questions
-1. **Q: What is a protein sequence embedding?**
-   - **Answer**: A numerical vector representing the chemical and structural context of amino acids, extracted by pre-trained protein language models like ESM-2.
-2. **Q: What is the difference between an alpha-helix and a beta-sheet?**
-   - **Answer**: An alpha-helix is a single right-handed spiral; a beta-sheet consists of parallel/anti-parallel peptide strands aligned side-by-side.
-3. **Q: What does the ignore_index parameter do in CrossEntropyLoss?**
-   - **Answer**: It tells PyTorch to skip calculating loss and gradients for target labels that match this value (used to skip padded tokens).
+### 7.1 Secondary Structure Evaluation
+*   **Q3 Accuracy**: Fraction of correctly predicted states (Helix, Strand, Coil) over total residues:
+    $$\text{Q3} = \frac{\sum_{i=1}^3 \text{TP}_i}{L}$$
+*   **Precision and Recall**: Evaluated per class to trace directional failures (e.g., sheets misclassified as coils).
 
-### 7.2 Intermediate Questions
-1. **Q: How does the model compute contact maps from 1D residue embeddings?**
-   - **Answer**: Via **Outer Concatenation**. If residue $i$ has embedding $v_i$ and residue $j$ has embedding $v_j$, we concatenate them as $[v_i; v_j]$ to construct a 2D matrix of shape $(L, L, 2d)$, then apply 2D convolutions.
-2. **Q: Why is ESM-2 frozen during training?**
-   - **Answer**: ESM-2 has 650 million parameters. Freezing it prevents catastrophic forgetting of language model weights, saves GPU memory, and speeds up training.
-3. **Q: Why is Precision@L used to measure contact maps?**
-   - **Answer**: The matrix has $O(L^2)$ elements, most of which are non-contacts. Precision@L evaluates only the top-$L$ highest confidence predictions where actual contacts reside.
+### 7.2 Contact Map Evaluation
+Because contact matrices are highly sparse, standard accuracy is not meaningful. Instead, we use **Precision@L**:
+*   **Precision@L / Precision@L/5**: The percentage of true contacts within the top-$L$ (or top-$L/5$) predicted contacts, sorted by model confidence.
+*   **Sequence Separation Ranges**: Evaluated across ranges:
+    *   **Short-range**: $6 \le |i - j| < 12$ residues.
+    *   **Medium-range**: $12 \le |i - j| < 24$ residues.
+    *   **Long-range**: $|i - j| \ge 24$ residues. (Long-range precision is the key indicator of model quality, as these contacts define the tertiary fold topology).
 
-### 7.3 Advanced Questions
-1. **Q: Why is BCEWithLogitsLoss preferred over applying Sigmoid then BCE?**
-   - **Answer**: BCEWithLogitsLoss combines the sigmoid activation and binary cross-entropy into a single mathematically stable loss layer using the log-sum-exp trick, preventing numerical overflow and underflow.
-2. **Q: Trace the gradient path during the backpropagation step of the CNN model.**
-   - **Answer**: Loss $\rightarrow$ Output Convolutions $\rightarrow$ Residual blocks (where skip connections copy gradients directly back to earlier layers to avoid vanishing gradients) $\rightarrow$ Input Projection Conv1D $\rightarrow$ stops at ESM-2 embeddings (since it is frozen).
+### 7.3 Experimental Performance Benchmarks (CB513 Test Set)
+Ablation studies comparing the three backbones on the CB513 test set:
 
-### 7.4 Professor-Level Questions
-1. **Q: How would you modify FoldNet to predict 3D coordinates directly (like AlphaFold)?**
-   - **Answer**: We would replace the classification heads with a structure module containing **Invariant Point Attention (IPA)** or a frame-matching network that outputs $3\text{D}$ coordinates ($x, y, z$) for $\text{C}_\alpha, \text{N}, \text{C}$ atoms, optimized using Frame Aligned Point Error (FAPE) loss.
-2. **Q: If FoldNet predictions disagree with DSSP annotations, which one is "correct"?**
-   - **Answer**: DSSP is a rule-based algorithm using hydrogen bonding energy heuristics, which can be noisy or fail in disordered regions. FoldNet learns general patterns from millions of structures. A mismatch does not automatically mean FoldNet is biologically wrong; it could represent conformational flexibility.
+| Architecture Backbone | Q3 Accuracy (%) | MCC (Macro) | Precision@L (All) | Long-Range Precision |
+| :--- | :--- | :--- | :--- | :--- |
+| **Residual CNN** | **83.66%** | **0.7448** | 0.0258 | 0.0120 |
+| **BiLSTM Fusion** | 82.55% | 0.7270 | **0.1022** | **0.0845** |
+| **Transformer-Hybrid** | 82.93% | 0.7326 | 0.0226 | 0.0105 |
+
+> [!NOTE]
+> *Insight*: The **Residual CNN** performs best on local 1D secondary structure classification (Q3 = 83.66%), but the **BiLSTM Fusion** model exhibits significantly higher precision on 2D contact maps (Long-Range Precision = 0.0845). This occurs because LSTMs track long-range sequences more effectively, feeding better global contexts into the outer concatenation layer.
 
 ---
 
-## Chapter 8: Final Defensibility Checklist
+## Chapter 8: Visualization and Web Interface System
 
-Before entering your viva, ensure you can write these three equations on a whiteboard from memory:
+### 8.1 3Dmol.js WebGL Integration
+*   **Concept**: 3Dmol.js is a hardware-accelerated WebGL viewer that runs entirely on the client side.
+*   **Mechanism**: The dashboard pulls the reference PDB coordinate file via `/api/pdb/{id}`. The JavaScript rendering engine colors the structure dynamically:
+    *   **Native Mode**: Colors the ribbon by the ground-truth secondary structure.
+    *   **Prediction Mode**: Colors the ribbon by the FoldNet predicted secondary structure.
+    *   **Difference Mode**: Highlights errors (Green for correct prediction, Red for misclassified residues).
 
-1. **Outer Concatenation Feature Construction**:
-   $$\mathbf{F}_{i,j} = [\mathbf{h}_i \,\|\, \mathbf{h}_j] \quad \text{where } \mathbf{h} \in \mathbb{R}^{d}, \mathbf{F} \in \mathbb{R}^{2d}$$
-2. **Multi-Task Loss Combination**:
-   $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{SS}} + \lambda_{\text{contact}} \mathcal{L}_{\text{contact}}$$
-3. **Q3 Score Formulation**:
-   $$\text{Q3} = \frac{\text{Correct H} + \text{Correct E} + \text{Correct C}}{\text{Total Sequence Length } L}$$
+### 8.2 Synchronized Plotly Hover Events
+The 2D Plotly contact map and the 3D WebGL viewer are bound bidirectionally:
+1.  **Plotly Hover**: Hovering over cell $(i, j)$ in the contact map triggers a JavaScript listener.
+2.  **3D Rendering Update**: The listener calls 3Dmol.js coordinates API:
+    ```javascript
+    // Add temporary sphere billboards at the hovered Cα residue positions
+    viewer.addSphere({center: {x: posI.x, y: posI.y, z: posI.z}, radius: 2.0, color: 'blue'});
+    viewer.addSphere({center: {x: posJ.x, y: posJ.y, z: posJ.z}, radius: 2.0, color: 'blue'});
+    viewer.render();
+    ```
+3.  This establishes a clear link between 2D predictions and physical 3D spaces.
+
+---
+
+## Chapter 9: System Architecture & Deployment
+
+### 9.1 Unified System Flow Diagram
+
+The complete system architecture, showing data flow from user interface to prediction backend, is mapped below:
+
+```mermaid
+graph TD
+    User([User in Browser]) -->│Sequence / Target ID│ UI[React/HTML5 UI]
+    UI -->│HTTP POST /api/predict│ API[FastAPI Web Server]
+    
+    subgraph FastAPI Backend
+        API -->│Check Cache│ Cache{Inference Cache}
+        Cache -->│Miss│ ModelLoader[Model & Weights Manager]
+        Cache -->│Hit│ UI
+        ModelLoader -->│Run ESM-2 Extract│ ESM[ESM-2 650M Transformer]
+        ESM -->│Embeddings: L x 1280│ FoldNetModel[FoldNet Core Model]
+        FoldNetModel -->│Forward Pass│ Predictions[Probabilities & Contact Matrix]
+        Predictions -->│JSON Payload│ API
+    end
+    
+    API -->│PDB Coordinates & Predictions│ UI
+    UI -->│Render WebGL Viewport│ Mol[3Dmol.js Canvas]
+    UI -->│Render Matrix Grid│ Plotly[Plotly Heatmap]
+```
+
+### 9.2 Deployment Specifications
+*   **Base OS**: Ubuntu 20.04+ / Windows 10+
+*   **Python**: 3.9 - 3.11
+*   **PyTorch / Lightning**: PyTorch >= 2.0.0, PyTorch Lightning >= 2.0.0
+*   **VRAM Footprint**:
+    *   *Inference*: ~3.5GB VRAM (due to ESM-2 650M weights).
+    *   *Training (Batch size 4, length 512)*: ~5.8GB VRAM (fits on standard consumer GPUs).
+
+---
+
+## Chapter 10: Defensibility checklist & Design Alternatives
+
+### 10.1 Key Design Decisions & Alternatives
+*   **Why ESM-2 over ProtT5?**
+    *   *Decision*: ESM-2 was selected because its embeddings are more structural-aware due to training on UniRef databases with evolutionary masking. ProtT5 was trained on Google T5 span denoising, which captures functional text semantics better but is less performant on residue-residue physical distances.
+*   **Why a sequence separation threshold of 6 residues?**
+    *   *Decision*: Alpha-helices have a natural pitch period of 3.6 residues. Residues spaced within 5 positions physically touch as a result of simple helix spirals. Masking sequence separations $<6$ ensures that the model learns global folding topologies instead of trivial local helices.
+*   **Why frozen embeddings?**
+    *   *Decision*: Fine-tuning ESM-2 (650M parameters) alongside FoldNet (5-10M parameters) on small structural datasets leads to model collapse and severe overfitting. Freezing ESM-2 acts as a powerful regularizer, retaining general biological representation spaces.
+
+### 10.2 Whiteboard equations for the Viva
+Be prepared to write these equations on a whiteboard during your viva:
+
+1.  **Multi-Task Loss Combination**:
+    $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{SS}} + \lambda_{\text{contact}} \mathcal{L}_{\text{contact}}$$
+2.  **Outer Concatenation Operations**:
+    $$\mathbf{P}_{i,j} = [h_i \,\|\, h_j] \quad \text{where } h \in \mathbb{R}^{d}, \mathbf{P}_{i,j} \in \mathbb{R}^{2d}$$
+3.  **Secondary Structure Q3 Accuracy Metric**:
+    $$\text{Q3} = \frac{\text{Correct Helix} + \text{Correct Strand} + \text{Correct Coil}}{\text{Total Sequence Length } L} \times 100\%$$
+4.  **Local Masking Rule**:
+    $$\text{Target}_{i, j} = 0 \quad \text{for all } |i - j| < 6$$

@@ -803,10 +803,8 @@ function drawContactMatrix() {
                     row.push(1.0); // TP (Green)
                 } else if (!isTrue && isPred) {
                     row.push(2.0); // FP (Red)
-                } else if (isTrue && !isPred) {
-                    row.push(3.0); // FN (Orange)
                 } else {
-                    row.push(0.0); // Background
+                    row.push(0.0); // Background (including False Negatives)
                 }
             }
         }
@@ -831,15 +829,13 @@ function drawContactMatrix() {
         colorscale = [
             [0.0, '#020617'],
             [0.25, '#020617'],
-            [0.25, '#10b981'], // TP
-            [0.5, '#10b981'],
-            [0.5, '#ef4444'], // FP
-            [0.75, '#ef4444'],
-            [0.75, '#f97316'], // FN
-            [1.0, '#f97316']
+            [0.25, '#10b981'], // TP (Green)
+            [0.75, '#10b981'],
+            [0.75, '#ef4444'], // FP (Red)
+            [1.0, '#ef4444']
         ];
         zmin = 0;
-        zmax = 3;
+        zmax = 2;
     }
 
     let plotData = [{
@@ -904,7 +900,6 @@ function updateMatrixLegend() {
         legend.append(`
             <div class="d-flex align-items-center gap-1"><div class="legend-indicator" style="background-color: #10b981;"></div> True Positive (Green)</div>
             <div class="d-flex align-items-center gap-1"><div class="legend-indicator" style="background-color: #ef4444;"></div> False Positive (Red)</div>
-            <div class="d-flex align-items-center gap-1"><div class="legend-indicator" style="background-color: #f97316;"></div> False Negative (Orange)</div>
         `);
     } else if (state.matrixMode === 'true') {
         legend.append(`

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  foldnet-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: foldnet-app
+    ports:
+      - "8000:8000"
+    volumes:
+      # 1. Mount the local cache directory to the container to persist ESM-2 weights (~2.5GB).
+      # This prevents re-downloading model weights whenever the container restarts.
+      - ./cache:/app/cache
+      # 2. Mount checkpoints directory to allow updating or loading alternative models.
+      - ./results/checkpoints:/app/results/checkpoints
+    environment:
+      - FOLDNET_CHECKPOINT_PATH=/app/results/checkpoints/foldnet-epoch=08-val_loss=0.5015.ckpt
+    restart: unless-stopped
