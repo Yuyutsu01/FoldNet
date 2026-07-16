@@ -379,8 +379,6 @@ function recolorViewers() {
 
         if (state.colorMode === 'native') {
             colorB = SS_COLORS[trueVal] || '#ffffff';
-        } else if (state.colorMode === 'prediction') {
-            colorB = SS_COLORS[predVal] || '#ffffff';
         } else {
             colorB = isCorrect ? '#10b981' : '#ef4444';
         }
@@ -1207,7 +1205,6 @@ function updateResidueInspector(index, contactingIndex = null) {
 
     $('#stat-native').text(native);
     $('#stat-predicted').text(predicted);
-    $('#stat-shared').text(shared);
     $('#stat-missed').text(missed);
     $('#stat-false').text(false_contacts);
 
