@@ -17,7 +17,7 @@
 
 ---
 
-## 📺 Cinematic Intelligence Dashboard
+## Cinematic Intelligence Dashboard
 
 Experience the future of protein analysis with our custom-built, high-performance UI. Built with **FastAPI**, **React-patterns**, and **Glassmorphism**, it offers a premium SaaS-like experience for researchers.
 
@@ -33,22 +33,19 @@ Experience the future of protein analysis with our custom-built, high-performanc
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 <table align="center" style="border-collapse: collapse; border: none;">
   <tr>
     <td align="center" width="33%" style="border: none;">
-      <img src="https://img.icons8.com/fluency/96/artificial-intelligence.png" width="48" /><br>
       <h3>Deep Embeddings</h3>
       <p>Utilizes <b>Meta ESM-2 (650M)</b> transformer weights for 1280-dim evolutionary feature extraction.</p>
     </td>
     <td align="center" width="33%" style="border: none;">
-      <img src="https://img.icons8.com/fluency/96/dna-helix.png" width="48" /><br>
       <h3>Multi-Task Logic</h3>
       <p>Dual-head architecture predicting <b>3-class Secondary Structure</b> and <b>Contact Maps</b> (&le; 8Å) in parallel.</p>
     </td>
     <td align="center" width="33%" style="border: none;">
-      <img src="https://img.icons8.com/fluency/96/line-chart.png" width="48" /><br>
       <h3>SOTA Benchmarks</h3>
       <p>Achieves <b>~84% Q3 Accuracy</b> on the gold-standard CB513 dataset using Residual-CNN fusion.</p>
     </td>
@@ -57,7 +54,7 @@ Experience the future of protein analysis with our custom-built, high-performanc
 
 ---
 
-## 🧬 Neural Architecture
+## Neural Architecture
 
 FoldNet utilizes a hybrid architecture combining Transformer-based sequence representations with specialized 1D and 2D convolutional heads for local and global structural modeling.
 
@@ -88,7 +85,7 @@ graph TD
 
 ---
 
-## 📊 Performance Benchmarks
+## Performance Benchmarks
 
 Evaluated on the **CB513** test set, FoldNet demonstrates competitive performance across multiple specialized backbones.
 
@@ -103,12 +100,12 @@ Evaluated on the **CB513** test set, FoldNet demonstrates competitive performanc
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ### 1. Prerequisites
 *   **OS**: Windows 10+, Ubuntu 20.04+, or macOS.
 *   **Python**: 3.9 - 3.11.
-*   **Hardware**: NVIDIA GPU (8GB+ VRAM) is recommended for ESM-2 inference.
+*   **Hardware**: NVIDIA GPU (4GB+ VRAM) is recommended for ESM-2 inference.
 *   **Disk**: ~5GB for model weights and dataset cache.
 
 ---
@@ -149,7 +146,7 @@ The dashboard is accessible on the host port: **[http://localhost:8000](http://l
 
 ---
 
-## 📁 Project Ecosystem
+## Project Ecosystem
 
 ```text
 FoldNet/
@@ -171,17 +168,8 @@ FoldNet/
 
 ---
 
-## 📚 Technical Handbooks & Guides
+## Roadmap
 
-For deep structural biology context, code trace walkthroughs, and team management details:
-*   [foldnet_developer_handbook.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/foldnet_developer_handbook.md) — Line-by-line model walkthroughs and configurations.
-*   [foldnet_viva_handbook.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/foldnet_viva_handbook.md) — Comprehensive research viva study guide and Q&A handbook.
-*   [evaluation_and_workflow.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/evaluation_and_workflow.md) — Details on Q3 accuracy, Matthews Correlation Coefficient, Precision@L, and metrics systems.
-*   [team_collaboration.md](file:///c:/Users/shiva/OneDrive/Desktop/projects/FoldNet-1/docs/team_collaboration.md) — Responsibility matrices (RACI), timelines, WBS, and Git workflows.
-
----
-
-## 🗺️ Roadmap
 - [ ] **3D Cartesian Head**: Direct coordinate regression for PDB generation.
 - [ ] **Multi-Chain Support**: Interaction modeling for protein-protein complexes.
 - [ ] **Edge Deployment**: Quantized ESM-2 for browser-based local inference.
