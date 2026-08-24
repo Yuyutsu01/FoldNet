@@ -9,17 +9,15 @@
   <i>Transforming amino-acid sequences into secondary structure predictions & 2D contact maps.</i>
 </p>
 
----
-
-## 🛠️ Technologies Used
-
-| Domain | Technologies / Libraries |
-| :--- | :--- |
-| **Deep Learning & ML** | ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white) ![Lightning](https://img.shields.io/badge/PyTorch_Lightning-792EE5?style=flat-square&logo=pytorchlightning&logoColor=white) **ESM-2 Transformer** (`fair-esm`), **BiLSTM**, **Residual 1D/2D CNNs** |
-| **Bioinformatics & Science** | ![Biopython](https://img.shields.io/badge/Biopython-3776AB?style=flat-square&logo=python&logoColor=white) **Biopython**, **NumPy**, **Pandas**, **SciPy**, **Scikit-learn**, **h5py** |
-| **Web Dashboard & API** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/Uvicorn-4998F5?style=flat-square&logo=python&logoColor=white) **FastAPI**, **Uvicorn**, **Pydantic** |
-| **3D & 2D Visualization** | **Plotly.js**, **3Dmol.js**, **HTML5**, **Vanilla CSS**, **JavaScript**, **Bootstrap 5** |
-| **DevOps & Monitoring** | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) **Docker**, **Docker Compose**, **TensorBoard**, **Weights & Biases (W&B)** |
+<p align="center">
+  <img src="https://img.shields.io/badge/PYTHON-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/PYTORCH-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
+  <img src="https://img.shields.io/badge/FASTAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/SCIKIT--LEARN-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Scikit-Learn" />
+  <img src="https://img.shields.io/badge/JAVASCRIPT-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/DOCKER-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/LICENSE-MIT-yellow?style=for-the-badge" alt="License MIT" />
+</p>
 
 ---
 
