@@ -736,6 +736,30 @@
             from { opacity: 0; transform: translateY(3px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* FoldNet Live Logo Dynamic Styling */
+        .foldnet-live-logo-container {
+            display: inline-block;
+            position: relative;
+            user-select: none;
+            vertical-align: middle;
+        }
+
+        .foldnet-logo-hero {
+            width: 110px;
+            height: 110px;
+        }
+
+        .foldnet-logo-dashboard {
+            width: 50px;
+            height: 50px;
+        }
+
+        .foldnet-live-logo-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
     </style>
 </head>
 
@@ -743,33 +767,7 @@
 
     <!-- Cinematic Startup Overlay -->
     <div id="startup-screen">
-        <div class="startup-logo-container">
-            <svg class="startup-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Glow filter definitions -->
-                <defs>
-                    <radialGradient id="startupGlowGrad" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
-                        <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
-                    </radialGradient>
-                    <linearGradient id="startupLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#818cf8"/>
-                        <stop offset="50%" stop-color="#38bdf8"/>
-                        <stop offset="100%" stop-color="#10b981"/>
-                    </linearGradient>
-                </defs>
-                <!-- Background Glow Layer -->
-                <circle cx="50" cy="50" r="35" class="svg-glow-circle" fill="url(#startupGlowGrad)" />
-                <!-- Outer Rotating Ring representing Neural Engine -->
-                <circle cx="50" cy="50" r="38" class="svg-outer-ring" stroke="#38bdf8" stroke-width="2" stroke-dasharray="10 8" />
-                <!-- Inner Tracing Protein Ribbon Path -->
-                <path d="M 25,65 C 20,40 35,20 50,20 C 65,20 80,40 75,65 C 70,80 50,85 50,65 C 50,45 35,35 50,35 C 65,35 60,65 50,65" class="svg-backbone-path" stroke="url(#startupLineGrad)" stroke-width="3" stroke-linecap="round" />
-                <!-- Molecular Core Nodes -->
-                <circle cx="50" cy="20" r="4.5" class="svg-node node-1" fill="#818cf8" />
-                <circle cx="25" cy="65" r="4.5" class="svg-node node-2" fill="#38bdf8" />
-                <circle cx="75" cy="65" r="4.5" class="svg-node node-3" fill="#10b981" />
-                <circle cx="50" cy="65" r="5.5" class="svg-node node-core" fill="#ffffff" />
-            </svg>
-        </div>
+        <div class="startup-logo-container" id="hero-logo-container"></div>
         <h1 class="startup-title">FoldNet</h1>
         <div class="startup-subtitle">Scientific Analysis Workspace</div>
         <div class="startup-bar">
@@ -786,34 +784,8 @@
             <canvas id="header-bg-canvas"></canvas>
             
             <a href="#" class="comparison-brand" id="brand-link">
-                <!-- Inline Animated SVG Logo Wrapper -->
-                <div class="logo-animation-wrapper" id="logo-wrapper">
-                    <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Glow filter definitions -->
-                        <defs>
-                            <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
-                                <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
-                            </radialGradient>
-                            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#818cf8"/>
-                                <stop offset="50%" stop-color="#38bdf8"/>
-                                <stop offset="100%" stop-color="#10b981"/>
-                            </linearGradient>
-                        </defs>
-                        <!-- Background Glow Layer -->
-                        <circle cx="50" cy="50" r="35" class="svg-glow-circle" fill="url(#glowGrad)" />
-                        <!-- Outer Rotating Ring representing Neural Engine -->
-                        <circle cx="50" cy="50" r="38" class="svg-outer-ring" stroke="#38bdf8" stroke-width="2" stroke-dasharray="10 8" />
-                        <!-- Inner Tracing Protein Backbone Ribbon Path -->
-                        <path d="M 25,65 C 20,40 35,20 50,20 C 65,20 80,40 75,65 C 70,80 50,85 50,65 C 50,45 35,35 50,35 C 65,35 60,65 50,65" class="svg-backbone-path" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" />
-                        <!-- Molecular Core Nodes -->
-                        <circle cx="50" cy="20" r="4.5" class="svg-node node-1" fill="#818cf8" />
-                        <circle cx="25" cy="65" r="4.5" class="svg-node node-2" fill="#38bdf8" />
-                        <circle cx="75" cy="65" r="4.5" class="svg-node node-3" fill="#10b981" />
-                        <circle cx="50" cy="65" r="5.5" class="svg-node node-core" fill="#ffffff" />
-                    </svg>
-                </div>
+                <!-- FoldNet Live Logo Container -->
+                <div class="logo-animation-wrapper" id="dashboard-logo-container"></div>
                 
                 <!-- Text Container with Title -->
                 <div class="brand-text-container">
@@ -1225,11 +1197,32 @@
 
     <!-- Bootstrap & Page Script -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/foldnet-logo.js"></script>
     <script src="/static/comparison.js"></script>
     
     <!-- Premium Interactive Header Script -->
     <script>
         $(document).ready(function() {
+            // Instantiate Hero Section Live Logo
+            if (document.getElementById('hero-logo-container')) {
+                window.heroLogo = new FoldNetLiveLogo('#hero-logo-container', {
+                    variant: 'hero',
+                    interactive: true,
+                    autoplay: true,
+                    speed: 1.0
+                });
+            }
+
+            // Instantiate Dashboard Header Navigation Live Logo
+            if (document.getElementById('dashboard-logo-container')) {
+                window.dashboardLogo = new FoldNetLiveLogo('#dashboard-logo-container', {
+                    variant: 'dashboard',
+                    interactive: true,
+                    autoplay: true,
+                    speed: 1.0
+                });
+            }
+
             const canvas = document.getElementById('header-bg-canvas');
             if (canvas) {
                 const ctx = canvas.getContext('2d');
@@ -1327,14 +1320,14 @@
                     const dx = (e.clientX - centerX) * 0.015;
                     const dy = (e.clientY - centerY) * 0.015;
                     
-                    $('#logo-wrapper').css({
+                    $('#dashboard-logo-container').css({
                         'transform': `translate(${dx}px, ${dy}px)`,
                         'filter': `drop-shadow(${ -dx * 2 }px ${ -dy * 2 + 6 }px 16px rgba(56, 189, 248, 0.25))`
                     });
                 });
 
                 $('#premium-header').on('mouseleave', () => {
-                    $('#logo-wrapper').css({
+                    $('#dashboard-logo-container').css({
                         'transform': 'translate(0px, 0px)',
                         'filter': 'drop-shadow(0 4px 12px rgba(56, 189, 248, 0.15))'
                     });
